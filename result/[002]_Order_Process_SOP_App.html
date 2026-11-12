@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adeline Global Trade - 해외영업 Order Process SOP System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#172554',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <i data-lucide="ship" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-blue-200 bg-clip-text text-transparent">ADELINE GLOBAL</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-medium">SOP v2.4</span>
+          </div>
+          <p class="text-[11px] text-slate-400">해외영업 Order Process & 서류 통합 관리 시스템</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button onclick="openNewOrderModal()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all duration-150">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>신규 오더(PI) 등록</span>
+        </button>
+        <button onclick="exportData()" title="데이터 백업" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+        <button onclick="triggerImport()" title="데이터 복원" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+        </button>
+        <input type="file" id="importFileInput" class="hidden" accept=".json" onchange="importData(event)">
+        <button onclick="resetData()" title="초기 데이터 리셋" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN TAB NAVIGATION -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex space-x-1 sm:space-x-4 border-t border-slate-800/80 pt-1">
+        <button onclick="switchTab('pipeline')" id="tab-pipeline-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-blue-500 text-white flex items-center space-x-2">
+          <i data-lucide="git-commit" class="w-4 h-4"></i>
+          <span>1. SOP 8단계 파이프라인</span>
+        </button>
+        <button onclick="switchTab('cabinet')" id="tab-cabinet-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+          <i data-lucide="folder-archive" class="w-4 h-4"></i>
+          <span>2. PI별 필수 서류 캐비닛</span>
+          <span id="badge-missing-docs" class="ml-1 px-1.5 py-0.2 bg-rose-500/20 text-rose-300 text-[10px] rounded-full border border-rose-500/30">0</span>
+        </button>
+        <button onclick="switchTab('docreq')" id="tab-docreq-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>3. 브랜드 서류 자동 요청</span>
+        </button>
+        <button onclick="switchTab('guide')" id="tab-guide-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+          <i data-lucide="book-open-check" class="w-4 h-4"></i>
+          <span>4. 아델라인 SOP 매뉴얼</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- KPI STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">진행중 오더 (Active)</p>
+          <p id="stat-active-orders" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+          <p class="text-[11px] text-blue-600 mt-0.5">SOP 8단계 공정 가동중</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i data-lucide="boxes" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">입금 대기 (Payment)</p>
+          <p id="stat-pending-payment" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+          <p class="text-[11px] text-amber-700 mt-0.5">바이어 송금 & 대표님 체크</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+          <i data-lucide="badge-dollar-sign" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">선적/통관 대기 (Customs)</p>
+          <p id="stat-pending-shipping" class="text-2xl font-bold text-indigo-600 mt-1">0</p>
+          <p class="text-[11px] text-indigo-700 mt-0.5">수출면장 및 C/O 확정</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <i data-lucide="container" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">누락 필수 서류</p>
+          <p id="stat-missing-docs" class="text-2xl font-bold text-rose-600 mt-1">0</p>
+          <p class="text-[11px] text-rose-600 mt-0.5">PI 폴더 미보관 경보</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 1: SOP 8단계 파이프라인 ==================== -->
+    <section id="tab-pipeline" class="tab-content block space-y-5">
+      <!-- Search & Filters -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center space-x-2 flex-1 max-w-md">
+          <div class="relative w-full">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="orderSearchInput" oninput="renderOrders()" placeholder="PI 번호, 바이어명, 브랜드명 검색..." class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-500 font-medium">단계 필터:</span>
+          <select id="stageFilterSelect" onchange="renderOrders()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ALL">전체 공정 (All Steps)</option>
+            <option value="1">Step 1: 바이어 주문 접수</option>
+            <option value="2">Step 2: 브랜드사 발주</option>
+            <option value="3">Step 3: 바이어 입금 요청</option>
+            <option value="4">Step 4: 브랜드사 결제</option>
+            <option value="5">Step 5: 선적서류/수출면장</option>
+            <option value="6">Step 6: 입출고 진행</option>
+            <option value="7">Step 7: 세금계산서/구매확인서</option>
+            <option value="8">Step 8: 포워더 서류 전달 (완료)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Orders Container (Cards) -->
+      <div id="ordersListContainer" class="space-y-4">
+        <!-- Rendered Dynamically -->
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: PI별 필수 서류 캐비닛 ==================== -->
+    <section id="tab-cabinet" class="tab-content hidden space-y-5">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <i data-lucide="folder-check" class="w-5 h-5 text-blue-600"></i>
+              <span>PI No. 폴더 필수 보관 파일 관리 캐비닛</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">각 오더(PI No.)별 12대 필수 무역 서류의 수령·보관 여부를 실시간 검증합니다.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-semibold text-slate-600">대상 PI 선택:</label>
+            <select id="cabinetPISelect" onchange="loadCabinetDocs()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Selected PI Info Bar -->
+        <div id="cabinetPIHeader" class="my-4 p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <!-- Dynamic PI Info -->
+        </div>
+
+        <!-- Document Checklist Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-100/80 text-slate-700 uppercase font-semibold border-b border-slate-200">
+                <th class="py-3 px-4 w-12 text-center">No</th>
+                <th class="py-3 px-4">필수 보관 서류명</th>
+                <th class="py-3 px-4 w-32">업무 기준 단계</th>
+                <th class="py-3 px-4 w-28 text-center">보관 상태</th>
+                <th class="py-3 px-4 w-44">업로드 파일명</th>
+                <th class="py-3 px-4 w-28 text-center">작업 (액션)</th>
+              </tr>
+            </thead>
+            <tbody id="cabinetDocTableBody" class="divide-y divide-slate-200 font-medium">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: 브랜드 서류 자동 요청 센터 ==================== -->
+    <section id="tab-docreq" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Request Configuration Form -->
+        <div class="lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <i data-lucide="file-question" class="w-5 h-5 text-indigo-600"></i>
+              <span>바이어사 요청 서류 자동 작성기</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">바이어가 요구한 브랜드와 서류를 선택하면 브랜드사용 공문/요청 이메일이 자동 생성됩니다.</p>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">관련 PI 번호 선택</label>
+              <select id="reqPISelect" onchange="syncReqPIInfo()" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">바이어사명</label>
+                <input type="text" id="reqBuyerName" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-slate-50" readonly>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">수출 목적국</label>
+                <input type="text" id="reqBuyerCountry" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-slate-50" readonly>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">요청 대상 브랜드사명</label>
+              <input type="text" id="reqBrandName" placeholder="예: 아누아(ANUA), 조선미녀(BOJ), 라운드랩" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">브랜드사 담당자 이메일 / 수신인</label>
+              <input type="text" id="reqBrandEmail" placeholder="brand_export@brand.com / 영업담당자 앞" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">요청 대상 품목 리스트</label>
+              <textarea id="reqProductList" rows="2" placeholder="1. 어성초 77 수딩 토너 250ml&#10;2. 어성초 포어 컨트롤 클렌징 오일 200ml" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1.5">바이어사 요청 서류 종류 (다중 선택)</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="MSDS (물질안전보건자료 - 국/영문)" checked class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">MSDS (안전보건)</span>
+                </label>
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="INCI (전성분 함량표 영문/한글)" checked class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">INCI (전성분표)</span>
+                </label>
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="COA (Certificate of Analysis - 공인시험성적서)" checked class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">COA (품질시험성적서)</span>
+                </label>
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="CFS (자유판매증명서 Certificate of Free Sale)" class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">CFS (자유판매증명서)</span>
+                </label>
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="C/O (원산지증명서 발급용 원산지포괄확인서)" class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">원산지 포괄확인서</span>
+                </label>
+                <label class="flex items-center space-x-1.5 p-2 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                  <input type="checkbox" name="reqDocs" value="제조증명서 / 동물실험 미실시 확인서" class="rounded text-indigo-600">
+                  <span class="font-medium text-slate-700">제조/비동물실험 증명</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">서류 수령 희망 마감일</label>
+              <input type="date" id="reqDueDate" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div class="pt-2">
+              <button onclick="generateDocRequestLetter()" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-sm flex items-center justify-center space-x-2 transition">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>공문 및 발송 이메일 1초 자동 생성</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Generated Email Preview & Action -->
+        <div class="lg:col-span-7 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                  <i data-lucide="mail-check" class="w-5 h-5 text-blue-600"></i>
+                  <span>생성된 브랜드사 요청 공문 / 이메일</span>
+                </h3>
+                <p class="text-xs text-slate-500">복사하여 브랜드사 담당자 메신저나 이메일로 즉시 발송하십시오.</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="copyGeneratedLetter()" class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span id="copyBtnText">전문 복사</span>
+                </button>
+                <button onclick="sendViaMailClient()" class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>메일 프로그램 연결</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">메일 제목</label>
+              <input type="text" id="genEmailSubject" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-medium bg-slate-50 text-slate-900" readonly>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">메일 본문 (원문)</label>
+              <textarea id="genEmailBody" rows="16" class="w-full border border-slate-300 rounded-lg p-3 text-xs font-mono leading-relaxed bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 custom-scrollbar"></textarea>
+            </div>
+          </div>
+
+          <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-800 text-[11px] flex items-start space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+            <div>
+              <span class="font-bold">무역 실무 TIP:</span> 바이어의 해외 세관 통관 및 현지 보건당국 등록을 위해서는 브랜드사 날인이 포함된 최신 버전의 원본 파일(PDF) 수령이 필수입니다. 수령 즉시 <span class="underline font-bold">2번 캐비닛</span>에 등록하십시오.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: 아델라인 SOP 매뉴얼 ==================== -->
+    <section id="tab-guide" class="tab-content hidden space-y-5">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <div class="text-center pb-6 border-b border-slate-200">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full mb-2">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+              <span>아델라인(Adeline) 해외영업부 공식 표준 규약</span>
+            </div>
+            <h2 class="text-2xl font-black text-slate-900">해외영업 진행 프로세스 (Order Process SOP)</h2>
+            <p class="text-xs text-slate-500 mt-2">무결점 무역 수출입을 위한 8단계 프로세스 및 PI No. 필수 파일 보관 헌장</p>
+          </div>
+
+          <!-- SOP 8 Steps Accordion / Cards -->
+          <div class="space-y-4 text-xs leading-relaxed text-slate-700">
+            <!-- Step 1 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">1</span>
+                <h3 class="text-sm font-bold text-slate-900">바이어 주문 접수 (Buyer Order Receipt)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li>바이어로부터 <strong>주문서 (Order Sheet)</strong>를 수령합니다.</li>
+                <li><strong>Draft Commercial Invoice (Draft CI)</strong>를 작성하여 바이어에게 신속히 전달합니다.</li>
+                <li>바이어가 Draft CI를 확인 및 <strong>최종 확정</strong>하면 브랜드사에 발주를 진행합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">2</span>
+                <h3 class="text-sm font-bold text-slate-900">브랜드사 발주 (Brand Purchase Order)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li>브랜드사에 <strong>발주서(Purchase Order)</strong>를 전달합니다.</li>
+                <li>브랜드사로부터 <strong>최종 확정서 (품목, 수량, 공급금액)</strong>를 수령하여 바이어 주문과 일치 여부를 검증합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">3</span>
+                <h3 class="text-sm font-bold text-slate-900">바이어 최종 확인 및 입금 요청 (Final Confirmation & Payment Request)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li>브랜드사 확정서를 반영하여 <strong>Final Commercial Invoice (Final CI)</strong>를 작성합니다.</li>
+                <li>품절 또는 수량 변경 사항이 발생한 경우 반드시 수정 반영 후 바이어에게 전달합니다.</li>
+                <li>Final CI를 바이어에게 전달하고 송금을 정식 요청합니다.</li>
+                <li>송금 증빙인 <strong>SWIFT Copy (송금증)</strong>를 바이어에게 요청합니다.</li>
+                <li class="text-rose-600 font-bold">★ 핵심 검증: 실제 입금 여부를 아델라인 대표님께 반드시 직접 체크합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">4</span>
+                <h3 class="text-sm font-bold text-slate-900">브랜드사 결제 (Brand Payment & PL Receipt)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li>바이어 입금 확인 완료 후, 대표님께 브랜드사 결제를 정식 요청합니다.</li>
+                <li>브랜드사에 입금 완료 후 브랜드사로부터 <strong>Packing List (PL)</strong>를 수령합니다.</li>
+                <li>최종 <strong>Final CI / PL</strong> 작업 및 크로스체크를 진행합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="p-4 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center text-xs">5</span>
+                <h3 class="text-sm font-bold text-indigo-950">선적서류 작성 및 수출면장 발행 (Shipping Docs & Export Declaration)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li>Final Commercial Invoice (CI) 및 Packing List (PL)를 바이어에게 전달합니다.</li>
+                <li>관세사에게 Final CI / PL을 기준으로 <strong>수출면장(수출신고필증)</strong> 발행을 요청합니다.</li>
+                <li>수출 대상국 FTA 규정에 따라 필요 시 <strong>원산지증명서 (C/O)</strong> 발급을 요청합니다.</li>
+                <li class="text-indigo-700 font-bold bg-white p-2.5 rounded-lg border border-indigo-200 mt-2">
+                  ⚠️ [절대 주의 규약]: 수출면장은 반드시 <strong>최종 패킹이 확정된 이후</strong>에 요청합니다.<br>
+                  (패킹 정보 및 중량/CBM이 변경될 경우 수출면장을 세관에 수정 신고해야 하므로, 출고가 100% 확정된 후 발행하는 것이 절대 원칙입니다.)
+                </li>
+              </ul>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">6</span>
+                <h3 class="text-sm font-bold text-slate-900">입출고 진행 (Warehouse In & Outbound)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li><strong>입고:</strong> 브랜드사 출고물품 -> <strong>아델라인 창고 입고</strong> 및 수량/파손 검수</li>
+                <li><strong>출고:</strong> 아델라인 창고 -> <strong>바이어가 지정한 포워더 창고 또는 최종 입고지</strong>로 출고</li>
+                <li>출고 완료 후 포워더와 인계 내역 및 반입 상태를 최종 크로스체크합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 7 -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">7</span>
+                <h3 class="text-sm font-bold text-slate-900">세금계산서 및 구매확인서 처리 (Tax & Purchase Certificate)</h3>
+              </div>
+              <ul class="list-disc list-inside space-y-1 pl-2 text-slate-600">
+                <li><strong>영세율 적용 거래건:</strong> 구매확인서를 정식 발급하고, 브랜드사로부터 <strong>영세율 전자세금계산서</strong> 발행 여부를 반드시 확인합니다.</li>
+                <li><strong>부가세 포함 거래건:</strong> 공급처(Supplier)의 일반 전자세금계산서 발행 및 매입세액 공제 여부를 확인합니다.</li>
+              </ul>
+            </div>
+
+            <!-- Step 8 -->
+            <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-white transition shadow-sm">
+              <div class="flex items-center space-x-3 mb-2">
+                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black flex items-center justify-center text-xs">8</span>
+                <h3 class="text-sm font-bold text-emerald-950">포워더 서류 전달 및 오더 종결 (Forwarder Docs Handoff)</h3>
+              </div>
+              <p class="text-slate-600 mb-2 pl-2">포워더에게 아래 3대 핵심 서류를 최종 전달하고 선적을 완료합니다:</p>
+              <div class="grid grid-cols-3 gap-2 pl-2 font-bold text-slate-800">
+                <div class="p-2 bg-white rounded border border-emerald-200 text-center">1. Final Commercial Invoice (CI)</div>
+                <div class="p-2 bg-white rounded border border-emerald-200 text-center">2. Packing List (PL)</div>
+                <div class="p-2 bg-white rounded border border-emerald-200 text-center">3. 수출면장 (수출신고필증)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PI Archive Box -->
+          <div class="p-5 bg-gradient-to-br from-slate-900 to-blue-950 text-white rounded-xl shadow-md space-y-3">
+            <div class="flex items-center space-x-2 text-blue-300 font-bold text-sm">
+              <i data-lucide="archive" class="w-5 h-5"></i>
+              <span>PI No. 폴더 필수 보관 파일 목록 (총 12개 마스터 파일)</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              각 PI No. 디렉터리에는 아래 12개 파일이 무결점으로 아카이빙되어야 감사가 종결됩니다:
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-200">
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>1. 바이어 주문서 (Order Sheet)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>2. 브랜드사 발주서 (PO)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>3. 브랜드사 확정서</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>4. Draft CI</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>5. Final CI</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>6. Packing List (PL)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>7. Final CI / PL 합본</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>8. 수출면장</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>9. SWIFT Copy (입금증)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>10. 원산지증명서 (C/O)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>11. 구매확인서 (영세율)</span></div>
+              <div class="p-2 bg-white/10 rounded flex items-center space-x-2"><span>12. 전자세금계산서</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal: New Order Creation -->
+  <div id="newOrderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+          <i data-lucide="folder-plus" class="w-5 h-5 text-blue-600"></i>
+          <span>신규 해외 오더 (PI) 등록</span>
+        </h3>
+        <button onclick="closeNewOrderModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="newOrderForm" onsubmit="handleCreateOrder(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">PI 번호 (Proforma Invoice No) *</label>
+            <input type="text" id="modalPINo" placeholder="예: ADL-2026-US042" required class="w-full border border-slate-300 rounded-lg p-2 font-mono uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">바이어 국가</label>
+            <input type="text" id="modalBuyerCountry" placeholder="예: 미국 (USA)" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">바이어사명 *</label>
+            <input type="text" id="modalBuyerName" placeholder="예: GlowRecipe Inc." required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">대상 브랜드사 *</label>
+            <input type="text" id="modalBrandName" placeholder="예: 아누아 (ANUA)" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">통화 단위</label>
+            <select id="modalCurrency" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="KRW">KRW (₩)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">총 주문 금액 *</label>
+            <input type="number" id="modalAmount" placeholder="45000" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">인코텀즈</label>
+            <select id="modalIncoterms" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="FOB">FOB</option>
+              <option value="CIF">CIF</option>
+              <option value="EXW">EXW</option>
+              <option value="DDP">DDP</option>
+              <option value="CFR">CFR</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">주문 품목 요약</label>
+          <input type="text" id="modalItemsSummary" placeholder="예: 하트리프 토너 5,000ea, 클렌징폼 3,000ea" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">비고 및 특이사항</label>
+          <input type="text" id="modalNotes" placeholder="예: 영세율 구매확인서 발급 대상건, C/O 원산지증명서 필요" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeNewOrderModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 font-medium">취소</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold">오더 등록 완료</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Step Progress Detail / Check-Gate -->
+  <div id="stepModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center space-x-2">
+          <span id="stepModalPINo" class="font-black text-blue-600 text-base">ADL-2026-US001</span>
+          <span class="text-slate-300">|</span>
+          <h3 id="stepModalTitle" class="text-sm font-bold text-slate-900">SOP 8단계 공정 제어 및 체크리스트</h3>
+        </div>
+        <button onclick="closeStepModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="stepModalContent" class="overflow-y-auto space-y-4 custom-scrollbar pr-1 flex-1 text-xs">
+        <!-- Rendered Dynamically -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500">모든 체크박스를 완료하면 다음 단계로 자동 승격 가능합니다.</span>
+        <button onclick="closeStepModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white font-semibold hover:bg-slate-700">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: File Upload Simulation -->
+  <div id="fileUploadModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i>
+          <span id="fileModalTitle">서류 파일 등록 및 아카이빙</span>
+        </h3>
+        <button onclick="closeFileUploadModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-600 font-semibold mb-1">서류 항목</label>
+          <input type="text" id="fileModalDocName" class="w-full bg-slate-100 p-2 rounded-lg border border-slate-200 font-bold" readonly>
+        </div>
+
+        <div>
+          <label class="block text-slate-600 font-semibold mb-1">파일 선택 (실제 파일 또는 파일명 입력)</label>
+          <input type="file" id="fileModalRealInput" onchange="handleRealFileSelected(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-2">
+          <input type="text" id="fileModalCustomName" placeholder="파일명 직접 지정 (예: Final_CI_ADL-042.pdf)" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-600 font-semibold mb-1">보관 상태 지정</label>
+          <select id="fileModalStatus" class="w-full border border-slate-300 rounded-lg p-2">
+            <option value="완료">완료 (보관 완료 / 이상무)</option>
+            <option value="검토중">검토중 (작성/수정 진행중)</option>
+            <option value="미보유">미보유 (서류 미입고)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2 text-xs">
+        <button onclick="closeFileUploadModal()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">취소</button>
+        <button onclick="saveCabinetFile()" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-500">저장 및 아카이빙</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-700">ADELINE GLOBAL TRADE INC.</span>
+        <span>•</span>
+        <span>해외영업본부 SOP 자동화 시스템</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        우리팀 AX-TWIN 마스터 엔진 구동중 (Zero-Heat & Token-Zero Architecture)
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== APPLICATION LOGIC (JAVASCRIPT) ==================== -->
+  <script>
+    // 12대 필수 보관 서류 마스터 정의
+    const REQUIRED_DOCS_MASTER = [
+      { id: 1, name: "바이어 주문서 (Order Sheet)", step: "Step 1", defaultFileName: "Buyer_Order_Sheet.pdf", required: true },
+      { id: 2, name: "브랜드사 발주서 (Purchase Order)", step: "Step 2", defaultFileName: "Brand_PO.pdf", required: true },
+      { id: 3, name: "브랜드사 확정서", step: "Step 2", defaultFileName: "Brand_Confirmation.pdf", required: true },
+      { id: 4, name: "Draft Commercial Invoice (Draft CI)", step: "Step 1", defaultFileName: "Draft_CI.xlsx", required: true },
+      { id: 5, name: "Final Commercial Invoice (Final CI)", step: "Step 3~5", defaultFileName: "Final_CI.pdf", required: true },
+      { id: 6, name: "Packing List (PL)", step: "Step 4~5", defaultFileName: "Packing_List.pdf", required: true },
+      { id: 7, name: "Final CI / PL 합본", step: "Step 5", defaultFileName: "Final_CI_PL_Merged.pdf", required: true },
+      { id: 8, name: "수출면장 (Export Declaration)", step: "Step 5", defaultFileName: "Export_Declaration.pdf", required: true },
+      { id: 9, name: "SWIFT Copy (송금증)", step: "Step 3", defaultFileName: "SWIFT_Copy.pdf", required: true },
+      { id: 10, name: "원산지증명서 (C/O) (발급 시)", step: "Step 5", defaultFileName: "Certificate_of_Origin.pdf", required: false },
+      { id: 11, name: "구매확인서 (해당 시)", step: "Step 7", defaultFileName: "Purchase_Certificate_ZeroTax.pdf", required: false },
+      { id: 12, name: "전자세금계산서 (해당 시)", step: "Step 7", defaultFileName: "Electronic_Tax_Invoice.pdf", required: true },
+    ];
+
+    // SOP 8단계 상세 설명 및 세부 체크리스트 정의
+    const SOP_STEPS_DEFINITION = [
+      {
+        step: 1,
+        title: "바이어 주문 접수",
+        desc: "바이어로부터 주문서를 수령하고 Draft CI를 작성하여 최종 확정을 받습니다.",
+        tasks: [
+          "바이어 주문서(Order Sheet) 수령 및 품목/수량/단가 확인",
+          "Draft Commercial Invoice (Draft CI) 작성 및 바이어 송부",
+          "바이어 측 Draft CI 최종 승인(Confirmation) 획득"
+        ]
+      },
+      {
+        step: 2,
+        title: "브랜드사 발주",
+        desc: "브랜드사에 발주서를 전달하고 최종 확정서를 수령합니다.",
+        tasks: [
+          "브랜드사 공식 발주서(PO) 발송",
+          "브랜드사로부터 최종 확정서(품목, 납기, 수량, 금액) 수령",
+          "바이어 주문서와 브랜드사 확정서 간 단가 및 수량 크로스체크"
+        ]
+      },
+      {
+        step: 3,
+        title: "바이어 최종 확인 및 입금 요청",
+        desc: "Final CI 작성, 송금 요청 및 SWIFT Copy 확인 후 아델라인 대표님께 입금 체크를 받습니다.",
+        tasks: [
+          "브랜드사 확정서 반영하여 Final CI 작성 (품절/수량 변경사항 필수 수정)",
+          "Final CI를 바이어에게 전달하고 결제/송금 요청",
+          "바이어로부터 SWIFT Copy (송금증) 수령",
+          "★ 아델라인 대표님께 실제 외화통장 입금 여부 최종 체크 및 확인"
+        ]
+      },
+      {
+        step: 4,
+        title: "브랜드사 결제",
+        desc: "대표님께 결제를 요청하고, 입금 후 Packing List(PL)를 수령하여 Final CI/PL을 정리합니다.",
+        tasks: [
+          "아델라인 대표님께 브랜드사 원자재/물품 대금 결제 요청",
+          "브랜드사 입금 완료 및 영수증 확인",
+          "브랜드사로부터 Packing List (PL) 수령",
+          "Final CI 및 PL 정밀 대조 작업 진행"
+        ]
+      },
+      {
+        step: 5,
+        title: "선적서류 작성 및 수출면장",
+        desc: "바이어에게 서류 전달, 관세사에 수출면장 및 C/O를 요청합니다. (패킹 확정 후 면장 발행 원칙)",
+        tasks: [
+          "Final Commercial Invoice 및 Packing List를 바이어에게 전달",
+          "⚠️ 관세사에게 Final CI/PL 기준으로 수출면장 발행 요청 (반드시 출고 및 최종 패킹 확정 후 요청)",
+          "필요 시 FTA 원산지증명서 (C/O) 발급 요청",
+          "발행된 수출면장 상의 품명, 수량, 중량(Gross/Net Weight), CBM 검증"
+        ]
+      },
+      {
+        step: 6,
+        title: "입출고 진행",
+        desc: "브랜드사 물품을 아델라인 창고에 입고 검수한 후 포워더로 출고합니다.",
+        tasks: [
+          "브랜드사 -> 아델라인 창고 입고 및 패킹/박스 상태 검수",
+          "아델라인 창고 -> 바이어 지정 포워더(또는 선적지)로 안전 출고",
+          "출고 완료 후 포워더와 반입 및 인계 내역 최종 상호 확인"
+        ]
+      },
+      {
+        step: 7,
+        title: "세금계산서 및 구매확인서 처리",
+        desc: "영세율 적용 건은 구매확인서를 발급하고, 공급사 세금계산서 발행을 확인합니다.",
+        tasks: [
+          "영세율 적용 거래건인 경우 구매확인서 신청 및 발급 완료",
+          "브랜드사로부터 영세율 전자세금계산서 수취 여부 확인",
+          "부가세 포함 거래인 경우 공급사(Supplier)의 세금계산서 발행 완료 체크"
+        ]
+      },
+      {
+        step: 8,
+        title: "포워더 서류 전달 및 오더 종결",
+        desc: "포워더에게 Final CI, PL, 수출면장을 전달하여 수출을 성공적으로 완결합니다.",
+        tasks: [
+          "포워더에게 Final Commercial Invoice (CI) 송부",
+          "포워더에게 Packing List (PL) 송부",
+          "포워더에게 세관 수출신고필증(수출면장) 전달",
+          "B/L(선하증권) 발행 확인 및 PI No. 폴더 12대 서류 보관 최종 종결"
+        ]
+      }
+    ];
+
+    // 기본 시드(Mock) 데이터
+    const INITIAL_ORDERS = [
+      {
+        piNo: "ADL-2026-US001",
+        buyerName: "BeautyHaul Inc.",
+        buyerCountry: "미국 (USA)",
+        brandName: "아누아 (ANUA)",
+        itemsSummary: "어성초 토너 10,000ea, 클렌징오일 5,000ea",
+        currency: "USD",
+        amount: 87500,
+        incoterms: "FOB",
+        notes: "영세율 구매확인서 발급 대상, 영문 MSDS 및 INCI 필수 요청건",
+        createdAt: "2026-11-05",
+        currentStep: 3,
+        stepProgress: {
+          1: { completed: true, tasks: [true, true, true] },
+          2: { completed: true, tasks: [true, true, true] },
+          3: { completed: false, tasks: [true, true, true, false] }, // 대표님 체크 대기
+          4: { completed: false, tasks: [false, false, false, false] },
+          5: { completed: false, tasks: [false, false, false, false] },
+          6: { completed: false, tasks: [false, false, false] },
+          7: { completed: false, tasks: [false, false, false] },
+          8: { completed: false, tasks: [false, false, false, false] },
+        },
+        docs: [
+          { id: 1, name: "바이어 주문서 (Order Sheet)", status: "완료", fileName: "Order_Sheet_BeautyHaul_261105.pdf", date: "2026-11-05" },
+          { id: 2, name: "브랜드사 발주서 (Purchase Order)", status: "완료", fileName: "PO_ANUA_ADL26001.pdf", date: "2026-11-06" },
+          { id: 3, name: "브랜드사 확정서", status: "완료", fileName: "ANUA_Confirmation_Signed.pdf", date: "2026-11-07" },
+          { id: 4, name: "Draft Commercial Invoice (Draft CI)", status: "완료", fileName: "Draft_CI_ADL-US001.xlsx", date: "2026-11-05" },
+          { id: 5, name: "Final Commercial Invoice (Final CI)", status: "검토중", fileName: "Final_CI_ADL-US001_v2.pdf", date: "2026-11-08" },
+          { id: 6, name: "Packing List (PL)", status: "미보유", fileName: "", date: "" },
+          { id: 7, name: "Final CI / PL 합본", status: "미보유", fileName: "", date: "" },
+          { id: 8, name: "수출면장 (Export Declaration)", status: "미보유", fileName: "", date: "" },
+          { id: 9, name: "SWIFT Copy (송금증)", status: "완료", fileName: "SWIFT_ChaseBank_87500.pdf", date: "2026-11-10" },
+          { id: 10, name: "원산지증명서 (C/O) (발급 시)", status: "검토중", fileName: "CO_Application_Draft.pdf", date: "2026-11-09" },
+          { id: 11, name: "구매확인서 (해당 시)", status: "검토중", fileName: "KTNET_PurchaseCert_Draft.pdf", date: "2026-11-08" },
+          { id: 12, name: "전자세금계산서 (해당 시)", status: "미보유", fileName: "", date: "" }
+        ]
+      },
+      {
+        piNo: "ADL-2026-EU014",
+        buyerName: "Nordic Cosmetics AB",
+        buyerCountry: "스웨덴 (Sweden)",
+        brandName: "조선미녀 (Beauty of Joseon)",
+        itemsSummary: "맑은쌀선크림 12,000ea, 인삼에센스 4,000ea",
+        currency: "EUR",
+        amount: 98000,
+        incoterms: "CIF",
+        notes: "EU CPNP 등록용 원본 COA 및 국영문 MSDS 요청 완료",
+        createdAt: "2026-10-28",
+        currentStep: 5,
+        stepProgress: {
+          1: { completed: true, tasks: [true, true, true] },
+          2: { completed: true, tasks: [true, true, true] },
+          3: { completed: true, tasks: [true, true, true, true] },
+          4: { completed: true, tasks: [true, true, true, true] },
+          5: { completed: false, tasks: [true, false, false, false] },
+          6: { completed: false, tasks: [false, false, false] },
+          7: { completed: false, tasks: [false, false, false] },
+          8: { completed: false, tasks: [false, false, false, false] },
+        },
+        docs: [
+          { id: 1, name: "바이어 주문서 (Order Sheet)", status: "완료", fileName: "Nordic_Order_Oct28.pdf", date: "2026-10-28" },
+          { id: 2, name: "브랜드사 발주서 (Purchase Order)", status: "완료", fileName: "PO_BOJ_Nordic.pdf", date: "2026-10-29" },
+          { id: 3, name: "브랜드사 확정서", status: "완료", fileName: "BOJ_Confirm_EU.pdf", date: "2026-10-30" },
+          { id: 4, name: "Draft Commercial Invoice (Draft CI)", status: "완료", fileName: "Draft_CI_EU014.xlsx", date: "2026-10-28" },
+          { id: 5, name: "Final Commercial Invoice (Final CI)", status: "완료", fileName: "Final_CI_EU014.pdf", date: "2026-11-02" },
+          { id: 6, name: "Packing List (PL)", status: "완료", fileName: "PL_BOJ_16000ea.pdf", date: "2026-11-04" },
+          { id: 7, name: "Final CI / PL 합본", status: "완료", fileName: "Final_CI_PL_Nordic.pdf", date: "2026-11-05" },
+          { id: 8, name: "수출면장 (Export Declaration)", status: "검토중", fileName: "Customs_Pending.pdf", date: "2026-11-11" },
+          { id: 9, name: "SWIFT Copy (송금증)", status: "완료", fileName: "SWIFT_SEB_Bank_98000EUR.pdf", date: "2026-11-03" },
+          { id: 10, name: "원산지증명서 (C/O) (발급 시)", status: "검토중", fileName: "한-EU_FTA_CO_Draft.pdf", date: "2026-11-10" },
+          { id: 11, name: "구매확인서 (해당 시)", status: "완료", fileName: "Purchase_Cert_Issued.pdf", date: "2026-11-04" },
+          { id: 12, name: "전자세금계산서 (해당 시)", status: "완료", fileName: "ZeroTax_Invoice_Signed.pdf", date: "2026-11-05" }
+        ]
+      },
+      {
+        piNo: "ADL-2026-JP008",
+        buyerName: "Tokyo K-Beauty Trading",
+        buyerCountry: "일본 (Japan)",
+        brandName: "라운드랩 (ROUND LAB)",
+        itemsSummary: "자작나무 수분 선크림 6,000ea, 독도토너 3,000ea",
+        currency: "JPY",
+        amount: 8900000,
+        incoterms: "FOB",
+        notes: "후생성 통관 성분분석표 및 제조증명서 포함 완결건",
+        createdAt: "2026-10-15",
+        currentStep: 8,
+        stepProgress: {
+          1: { completed: true, tasks: [true, true, true] },
+          2: { completed: true, tasks: [true, true, true] },
+          3: { completed: true, tasks: [true, true, true, true] },
+          4: { completed: true, tasks: [true, true, true, true] },
+          5: { completed: true, tasks: [true, true, true, true] },
+          6: { completed: true, tasks: [true, true, true] },
+          7: { completed: true, tasks: [true, true, true] },
+          8: { completed: true, tasks: [true, true, true, true] },
+        },
+        docs: [
+          { id: 1, name: "바이어 주문서 (Order Sheet)", status: "완료", fileName: "Tokyo_PO_Oct15.pdf", date: "2026-10-15" },
+          { id: 2, name: "브랜드사 발주서 (Purchase Order)", status: "완료", fileName: "PO_RoundLab.pdf", date: "2026-10-16" },
+          { id: 3, name: "브랜드사 확정서", status: "완료", fileName: "RoundLab_Confirmed.pdf", date: "2026-10-17" },
+          { id: 4, name: "Draft Commercial Invoice (Draft CI)", status: "완료", fileName: "Draft_CI_JP008.xlsx", date: "2026-10-15" },
+          { id: 5, name: "Final Commercial Invoice (Final CI)", status: "완료", fileName: "Final_CI_JP008.pdf", date: "2026-10-20" },
+          { id: 6, name: "Packing List (PL)", status: "완료", fileName: "PL_RoundLab_9000.pdf", date: "2026-10-22" },
+          { id: 7, name: "Final CI / PL 합본", status: "완료", fileName: "Final_Merged_JP008.pdf", date: "2026-10-23" },
+          { id: 8, name: "수출면장 (Export Declaration)", status: "완료", fileName: "Export_Declaration_Passed.pdf", date: "2026-10-25" },
+          { id: 9, name: "SWIFT Copy (송금증)", status: "완료", fileName: "SWIFT_Mizuho_JPY.pdf", date: "2026-10-19" },
+          { id: 10, name: "원산지증명서 (C/O) (발급 시)", status: "완료", fileName: "RCEP_CO_Issued.pdf", date: "2026-10-26" },
+          { id: 11, name: "구매확인서 (해당 시)", status: "완료", fileName: "Purchase_Cert_KTNET.pdf", date: "2026-10-23" },
+          { id: 12, name: "전자세금계산서 (해당 시)", status: "완료", fileName: "Tax_Invoice_Complete.pdf", date: "2026-10-24" }
+        ]
+      }
+    ];
+
+    // Local Storage State Key
+    const STORAGE_KEY = 'ADELINE_SOP_ORDERS_V1';
+
+    let orders = [];
+    let currentCabinetPINo = "";
+    let activeEditingDoc = null;
+
+    // Load or initialize state
+    function loadState() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          orders = JSON.parse(stored);
+        } catch (e) {
+          console.error("Failed to parse storage, using initial mock", e);
+          orders = JSON.parse(JSON.stringify(INITIAL_ORDERS));
+        }
+      } else {
+        orders = JSON.parse(JSON.stringify(INITIAL_ORDERS));
+        saveState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+      updateKPIStats();
+    }
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-white');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      const targetSection = document.getElementById(`tab-${tabId}`);
+      const targetBtn = document.getElementById(`tab-${tabId}-btn`);
+      if (targetSection) targetSection.classList.remove('hidden');
+      if (targetBtn) {
+        targetBtn.classList.remove('border-transparent', 'text-slate-400');
+        targetBtn.classList.add('border-blue-500', 'text-white');
+      }
+
+      if (tabId === 'pipeline') renderOrders();
+      if (tabId === 'cabinet') refreshCabinetView();
+      if (tabId === 'docreq') populateDocReqSelect();
+
+      lucide.createIcons();
+    }
+
+    // KPI Stats Update
+    function updateKPIStats() {
+      const activeCount = orders.filter(o => o.currentStep < 8).length;
+      const pendingPaymentCount = orders.filter(o => o.currentStep === 3).length;
+      const pendingShippingCount = orders.filter(o => o.currentStep === 5).length;
+
+      let totalMissingDocs = 0;
+      orders.forEach(o => {
+        if (o.docs) {
+          o.docs.forEach(d => {
+            if (d.required && d.status === '미보유') {
+              totalMissingDocs++;
+            }
+          });
+        }
+      });
+
+      document.getElementById('stat-active-orders').innerText = activeCount;
+      document.getElementById('stat-pending-payment').innerText = pendingPaymentCount;
+      document.getElementById('stat-pending-shipping').innerText = pendingShippingCount;
+      document.getElementById('stat-missing-docs').innerText = totalMissingDocs;
+      document.getElementById('badge-missing-docs').innerText = totalMissingDocs;
+    }
+
+    // Render Orders in Pipeline
+    function renderOrders() {
+      const container = document.getElementById('ordersListContainer');
+      const searchQuery = (document.getElementById('orderSearchInput').value || '').toLowerCase().trim();
+      const stageFilter = document.getElementById('stageFilterSelect').value;
+
+      const filtered = orders.filter(order => {
+        const matchesSearch =
+          order.piNo.toLowerCase().includes(searchQuery) ||
+          order.buyerName.toLowerCase().includes(searchQuery) ||
+          order.brandName.toLowerCase().includes(searchQuery) ||
+          (order.itemsSummary && order.itemsSummary.toLowerCase().includes(searchQuery));
+
+        const matchesStage = stageFilter === 'ALL' || order.currentStep.toString() === stageFilter;
+        return matchesSearch && matchesStage;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-xl p-8 text-center border border-slate-200">
+            <i data-lucide="inbox" class="w-12 h-12 text-slate-300 mx-auto mb-2"></i>
+            <p class="text-sm font-semibold text-slate-600">조건에 맞는 오더가 없습니다.</p>
+            <p class="text-xs text-slate-400 mt-1">상단의 검색창 또는 단계 필터를 재설정하십시오.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(order => {
+        const currentStepObj = SOP_STEPS_DEFINITION.find(s => s.step === order.currentStep) || SOP_STEPS_DEFINITION[0];
+        const isClosed = order.currentStep === 8 && order.stepProgress[8]?.completed;
+        const missingDocsInOrder = (order.docs || []).filter(d => d.required && d.status === '미보유').length;
+
+        // Steps progress bar
+        let stepsHTML = '';
+        for (let s = 1; s <= 8; s++) {
+          let badgeColor = 'bg-slate-200 text-slate-500';
+          let borderStyle = 'border-transparent';
+          if (s < order.currentStep || (s === 8 && isClosed)) {
+            badgeColor = 'bg-emerald-500 text-white';
+          } else if (s === order.currentStep) {
+            badgeColor = 'bg-blue-600 text-white ring-2 ring-blue-300';
+            borderStyle = 'border-blue-600 font-bold';
+          }
+
+          stepsHTML += `
+            <div class="flex-1 flex flex-col items-center">
+              <div class="w-6 h-6 rounded-full ${badgeColor} flex items-center justify-center text-[10px] font-bold shadow-sm transition">
+                ${s < order.currentStep || (s === 8 && isClosed) ? '✓' : s}
+              </div>
+              <span class="text-[10px] text-slate-500 mt-1 truncate max-w-[80px] hidden md:block ${borderStyle}">
+                Step ${s}
+              </span>
+            </div>
+            ${s < 8 ? `<div class="flex-1 h-0.5 ${s < order.currentStep ? 'bg-emerald-500' : 'bg-slate-200'} mx-0.5 mt-3"></div>` : ''}
+          `;
+        }
+
+        return `
+          <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center space-x-3">
+                <span class="font-black text-blue-700 font-mono text-base tracking-tight bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                  ${order.piNo}
+                </span>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-slate-900 text-sm">${order.buyerName}</span>
+                    <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium">${order.buyerCountry}</span>
+                    <span class="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-semibold border border-indigo-100">${order.brandName}</span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5">${order.itemsSummary || '품목 미기재'}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-3 text-xs">
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[10px]">총 주문액 (${order.incoterms})</span>
+                  <span class="font-bold text-slate-800 text-sm">${order.currency} ${Number(order.amount).toLocaleString()}</span>
+                </div>
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="flex items-center space-x-1.5">
+                  <button onclick="openStepModal('${order.piNo}')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center space-x-1 shadow-sm">
+                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                    <span>공정 제어</span>
+                  </button>
+                  <button onclick="jumpToCabinet('${order.piNo}')" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold flex items-center space-x-1">
+                    <i data-lucide="folder" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span>서류함</span>
+                    ${missingDocsInOrder > 0 ? `<span class="bg-rose-500 text-white text-[10px] px-1.5 rounded-full ml-1 font-bold">${missingDocsInOrder}</span>` : ''}
+                  </button>
+                  <button onclick="deleteOrder('${order.piNo}')" title="오더 삭제" class="p-1.5 text-slate-400 hover:text-rose-500 rounded">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Current Stage Status Banner -->
+            <div class="mt-3.5 flex flex-col md:flex-row md:items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs gap-2">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded font-black text-white ${isClosed ? 'bg-emerald-600' : 'bg-blue-600'}">
+                  ${isClosed ? '오더 종결 (Closed)' : `현재: Step ${order.currentStep}`}
+                </span>
+                <span class="font-bold text-slate-800">${currentStepObj.title}</span>
+                <span class="text-slate-400">|</span>
+                <span class="text-slate-600 truncate max-w-md">${currentStepObj.desc}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 font-medium">
+                ${order.notes ? `📌 ${order.notes}` : ''}
+              </div>
+            </div>
+
+            <!-- 8 Steps Progress Bar -->
+            <div class="mt-4 pt-2 flex items-center justify-between">
+              ${stepsHTML}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // Open & Handle Step Progress Modal
+    function openStepModal(piNo) {
+      const order = orders.find(o => o.piNo === piNo);
+      if (!order) return;
+
+      document.getElementById('stepModalPINo').innerText = order.piNo;
+      document.getElementById('stepModalTitle').innerText = `${order.buyerName} - ${order.brandName} (${order.incoterms} ${order.currency} ${Number(order.amount).toLocaleString()})`;
+
+      const content = document.getElementById('stepModalContent');
+      content.innerHTML = SOP_STEPS_DEFINITION.map(s => {
+        const isCurrent = s.step === order.currentStep;
+        const isPast = s.step < order.currentStep;
+        const progressData = order.stepProgress[s.step] || { completed: false, tasks: [] };
+
+        let borderClass = 'border-slate-200 bg-white';
+        let badgeClass = 'bg-slate-200 text-slate-600';
+        if (isPast) {
+          borderClass = 'border-emerald-200 bg-emerald-50/30';
+          badgeClass = 'bg-emerald-600 text-white';
+        } else if (isCurrent) {
+          borderClass = 'border-blue-300 bg-blue-50/30 ring-1 ring-blue-400';
+          badgeClass = 'bg-blue-600 text-white';
+        }
+
+        const taskCheckboxes = s.tasks.map((taskText, idx) => {
+          const checked = progressData.tasks && progressData.tasks[idx];
+          const isSpecialAlert = taskText.includes('대표님') || taskText.includes('최종 패킹 확정');
+
+          return `
+            <label class="flex items-start space-x-2 p-1.5 rounded hover:bg-slate-100/70 cursor-pointer ${isSpecialAlert ? 'bg-amber-50/60 font-semibold text-amber-900 border border-amber-200/50' : 'text-slate-700'}">
+              <input type="checkbox" onchange="toggleOrderTask('${order.piNo}', ${s.step}, ${idx}, this.checked)" ${checked ? 'checked' : ''} class="mt-0.5 rounded text-blue-600 focus:ring-blue-500">
+              <span class="text-xs leading-tight">${taskText}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="p-3.5 rounded-xl border ${borderClass} shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-6 h-6 rounded-full ${badgeClass} text-xs font-bold flex items-center justify-center">
+                  ${isPast ? '✓' : s.step}
+                </span>
+                <span class="font-bold text-slate-900 text-xs">Step ${s.step}. ${s.title}</span>
+                ${isCurrent ? '<span class="text-[10px] bg-blue-600 text-white font-extrabold px-1.5 py-0.2 rounded">현재 진행중</span>' : ''}
+              </div>
+              <div class="flex items-center space-x-1">
+                <button onclick="setOrderCurrentStep('${order.piNo}', ${s.step})" class="text-[11px] px-2 py-0.5 rounded border border-slate-300 hover:bg-slate-100 text-slate-600 font-medium">
+                  이 단계로 설정
+                </button>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pl-8">${s.desc}</p>
+            <div class="pl-8 space-y-1 pt-1">
+              ${taskCheckboxes}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('stepModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeStepModal() {
+      document.getElementById('stepModal').classList.add('hidden');
+      renderOrders();
+    }
+
+    function toggleOrderTask(piNo, step, taskIdx, isChecked) {
+      const order = orders.find(o => o.piNo === piNo);
+      if (!order) return;
+
+      if (!order.stepProgress[step]) {
+        order.stepProgress[step] = { completed: false, tasks: [] };
+      }
+      order.stepProgress[step].tasks[taskIdx] = isChecked;
+
+      // Check if all tasks in this step are checked
+      const defTasks = SOP_STEPS_DEFINITION.find(s => s.step === step).tasks;
+      const allChecked = defTasks.every((_, idx) => !!order.stepProgress[step].tasks[idx]);
+      order.stepProgress[step].completed = allChecked;
+
+      // Auto advance step if current step is fully checked and step < 8
+      if (allChecked && order.currentStep === step && step < 8) {
+        order.currentStep = step + 1;
+      }
+
+      saveState();
+      openStepModal(piNo); // Re-render modal
+    }
+
+    function setOrderCurrentStep(piNo, targetStep) {
+      const order = orders.find(o => o.piNo === piNo);
+      if (!order) return;
+      order.currentStep = targetStep;
+      saveState();
+      openStepModal(piNo);
+    }
+
+    // Modal: New Order Creation
+    function openNewOrderModal() {
+      document.getElementById('newOrderForm').reset();
+      document.getElementById('modalPINo').value = `ADL-2026-ORD${Math.floor(100 + Math.random() * 900)}`;
+      document.getElementById('newOrderModal').classList.remove('hidden');
+    }
+
+    function closeNewOrderModal() {
+      document.getElementById('newOrderModal').classList.add('hidden');
+    }
+
+    function handleCreateOrder(e) {
+      e.preventDefault();
+      const piNo = document.getElementById('modalPINo').value.trim();
+      const buyerCountry = document.getElementById('modalBuyerCountry').value.trim();
+      const buyerName = document.getElementById('modalBuyerName').value.trim();
+      const brandName = document.getElementById('modalBrandName').value.trim();
+      const currency = document.getElementById('modalCurrency').value;
+      const amount = parseFloat(document.getElementById('modalAmount').value) || 0;
+      const incoterms = document.getElementById('modalIncoterms').value;
+      const itemsSummary = document.getElementById('modalItemsSummary').value.trim();
+      const notes = document.getElementById('modalNotes').value.trim();
+
+      // Check duplicate
+      if (orders.some(o => o.piNo.toUpperCase() === piNo.toUpperCase())) {
+        alert("이미 존재하는 PI 번호입니다. 다른 번호를 입력해주세요.");
+        return;
+      }
+
+      // Initialize initial docs from master
+      const initialDocs = REQUIRED_DOCS_MASTER.map(d => ({
+        id: d.id,
+        name: d.name,
+        status: "미보유",
+        fileName: "",
+        date: ""
+      }));
+
+      const newOrder = {
+        piNo: piNo.toUpperCase(),
+        buyerName,
+        buyerCountry,
+        brandName,
+        itemsSummary,
+        currency,
+        amount,
+        incoterms,
+        notes,
+        createdAt: new Date().toISOString().split('T')[0],
+        currentStep: 1,
+        stepProgress: {
+          1: { completed: false, tasks: [false, false, false] },
+          2: { completed: false, tasks: [false, false, false] },
+          3: { completed: false, tasks: [false, false, false, false] },
+          4: { completed: false, tasks: [false, false, false, false] },
+          5: { completed: false, tasks: [false, false, false, false] },
+          6: { completed: false, tasks: [false, false, false] },
+          7: { completed: false, tasks: [false, false, false] },
+          8: { completed: false, tasks: [false, false, false, false] },
+        },
+        docs: initialDocs
+      };
+
+      orders.unshift(newOrder);
+      saveState();
+      closeNewOrderModal();
+      renderOrders();
+      alert(`[${newOrder.piNo}] 해외 오더가 정상 등록되었습니다. Step 1부터 진행하십시오.`);
+    }
+
+    function deleteOrder(piNo) {
+      if (!confirm(`정말로 오더 [${piNo}]를 삭제하시겠습니까? 관련 보관 서류 데이터도 함께 삭제됩니다.`)) return;
+      orders = orders.filter(o => o.piNo !== piNo);
+      saveState();
+      renderOrders();
+    }
+
+    // ==================== TAB 2: Cabinet Logic ====================
+    function jumpToCabinet(piNo) {
+      currentCabinetPINo = piNo;
+      switchTab('cabinet');
+    }
+
+    function refreshCabinetView() {
+      const select = document.getElementById('cabinetPISelect');
+      if (orders.length === 0) {
+        select.innerHTML = '<option value="">등록된 오더 없음</option>';
+        document.getElementById('cabinetDocTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">오더를 먼저 등록해주세요.</td></tr>';
+        return;
+      }
+
+      select.innerHTML = orders.map(o => `
+        <option value="${o.piNo}" ${o.piNo === currentCabinetPINo ? 'selected' : ''}>
+          ${o.piNo} - ${o.buyerName} (${o.brandName})
+        </option>
+      `).join('');
+
+      if (!currentCabinetPINo || !orders.some(o => o.piNo === currentCabinetPINo)) {
+        currentCabinetPINo = orders[0].piNo;
+      }
+      select.value = currentCabinetPINo;
+
+      loadCabinetDocs();
+    }
+
+    function loadCabinetDocs() {
+      currentCabinetPINo = document.getElementById('cabinetPISelect').value;
+      const order = orders.find(o => o.piNo === currentCabinetPINo);
+      if (!order) return;
+
+      // Header summary
+      const completedCount = (order.docs || []).filter(d => d.status === '완료').length;
+      document.getElementById('cabinetPIHeader').innerHTML = `
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-slate-800 text-sm">${order.buyerName} (${order.buyerCountry})</span>
+          <span class="text-slate-400">•</span>
+          <span class="font-semibold text-blue-700">${order.brandName}</span>
+          <span class="text-slate-400">•</span>
+          <span class="text-slate-600">${order.currency} ${Number(order.amount).toLocaleString()} (${order.incoterms})</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span class="text-slate-500">필수 서류 보관율: <strong class="text-slate-800">${completedCount} / 12</strong></span>
+          <div class="w-24 bg-slate-200 h-2 rounded-full overflow-hidden">
+            <div class="bg-blue-600 h-full rounded-full" style="width: ${(completedCount/12)*100}%"></div>
+          </div>
+        </div>
+      `;
+
+      // Render table
+      const tbody = document.getElementById('cabinetDocTableBody');
+      tbody.innerHTML = REQUIRED_DOCS_MASTER.map((master, idx) => {
+        const docItem = (order.docs || []).find(d => d.id === master.id) || {
+          id: master.id,
+          name: master.name,
+          status: "미보유",
+          fileName: "",
+          date: ""
+        };
+
+        let statusBadge = '';
+        if (docItem.status === '완료') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">완료</span>';
+        } else if (docItem.status === '검토중') {
+          statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">검토중</span>';
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full ${master.required ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'} text-[11px] font-bold">${docItem.status}</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3 px-4 text-center font-mono text-slate-400">${idx + 1}</td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-800">${master.name}</div>
+              <div class="text-[10px] text-slate-400">${master.required ? '<span class="text-rose-500 font-semibold">[필수]</span>' : '<span class="text-slate-400">[해당 시]</span>'} 권장파일명: ${master.defaultFileName}</div>
+            </td>
+            <td class="py-3 px-4 text-slate-600 font-semibold">${master.step}</td>
+            <td class="py-3 px-4 text-center">${statusBadge}</td>
+            <td class="py-3 px-4">
+              ${docItem.fileName ? `
+                <div class="flex items-center space-x-1.5 text-blue-700 font-mono">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i>
+                  <span class="truncate max-w-[150px]" title="${docItem.fileName}">${docItem.fileName}</span>
+                </div>
+                <div class="text-[10px] text-slate-400">${docItem.date || ''}</div>
+              ` : '<span class="text-slate-300 italic">파일 미등록</span>'}
+            </td>
+            <td class="py-3 px-4 text-center">
+              <div class="inline-flex items-center space-x-1">
+                <button onclick="openFileUploadModal('${order.piNo}', ${master.id})" class="px-2.5 py-1 text-[11px] rounded bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 font-semibold border border-slate-200 transition">
+                  ${docItem.fileName ? '수정' : '등록'}
+                </button>
+                ${docItem.fileName ? `
+                  <button onclick="downloadMockDoc('${docItem.fileName}')" title="다운로드" class="p-1 text-slate-400 hover:text-blue-600 rounded">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // File Upload Modal
+    function openFileUploadModal(piNo, docId) {
+      const order = orders.find(o => o.piNo === piNo);
+      const master = REQUIRED_DOCS_MASTER.find(m => m.id === docId);
+      if (!order || !master) return;
+
+      const docItem = (order.docs || []).find(d => d.id === docId);
+      activeEditingDoc = { piNo, docId };
+
+      document.getElementById('fileModalDocName').value = master.name;
+      document.getElementById('fileModalCustomName').value = docItem?.fileName || `${order.piNo}_${master.defaultFileName}`;
+      document.getElementById('fileModalStatus').value = docItem?.status || '완료';
+
+      document.getElementById('fileUploadModal').classList.remove('hidden');
+    }
+
+    function closeFileUploadModal() {
+      document.getElementById('fileUploadModal').classList.add('hidden');
+      activeEditingDoc = null;
+    }
+
+    function handleRealFileSelected(e) {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('fileModalCustomName').value = file.name;
+      }
+    }
+
+    function saveCabinetFile() {
+      if (!activeEditingDoc) return;
+      const { piNo, docId } = activeEditingDoc;
+      const order = orders.find(o => o.piNo === piNo);
+      if (!order) return;
+
+      const customName = document.getElementById('fileModalCustomName').value.trim();
+      const status = document.getElementById('fileModalStatus').value;
+      const today = new Date().toISOString().split('T')[0];
+
+      let docItem = (order.docs || []).find(d => d.id === docId);
+      if (!docItem) {
+        docItem = { id: docId, name: REQUIRED_DOCS_MASTER.find(m => m.id === docId).name };
+        order.docs.push(docItem);
+      }
+
+      docItem.fileName = customName;
+      docItem.status = status;
+      docItem.date = today;
+
+      saveState();
+      closeFileUploadModal();
+      loadCabinetDocs();
+    }
+
+    function downloadMockDoc(fileName) {
+      alert(`[가상 다운로드]: "${fileName}" 파일이 다운로드되었습니다.\n(실무 환경에서는 회사 NAS 및 클라우드 저장소와 즉시 연동됩니다.)`);
+    }
+
+    // ==================== TAB 3: Brand Doc Request Dispatcher ====================
+    function populateDocReqSelect() {
+      const select = document.getElementById('reqPISelect');
+      if (orders.length === 0) {
+        select.innerHTML = '<option value="">등록된 오더 없음</option>';
+        return;
+      }
+
+      select.innerHTML = orders.map(o => `
+        <option value="${o.piNo}">${o.piNo} - ${o.buyerName} (${o.brandName})</option>
+      `).join('');
+
+      syncReqPIInfo();
+    }
+
+    function syncReqPIInfo() {
+      const piNo = document.getElementById('reqPISelect').value;
+      const order = orders.find(o => o.piNo === piNo);
+      if (!order) return;
+
+      document.getElementById('reqBuyerName').value = order.buyerName;
+      document.getElementById('reqBuyerCountry').value = order.buyerCountry;
+      document.getElementById('reqBrandName').value = order.brandName;
+      document.getElementById('reqBrandEmail').value = `export_support@${order.brandName.replace(/\s+/g, '').toLowerCase()}.co.kr`;
+      document.getElementById('reqProductList').value = order.itemsSummary || '1. 주요 대상 품목 전량 (발주서 참조)';
+
+      // Set default due date to 3 days from now
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 3);
+      document.getElementById('reqDueDate').value = dueDate.toISOString().split('T')[0];
+
+      generateDocRequestLetter();
+    }
+
+    function generateDocRequestLetter() {
+      const piNo = document.getElementById('reqPISelect').value;
+      const buyerName = document.getElementById('reqBuyerName').value;
+      const buyerCountry = document.getElementById('reqBuyerCountry').value;
+      const brandName = document.getElementById('reqBrandName').value;
+      const brandEmail = document.getElementById('reqBrandEmail').value;
+      const productList = document.getElementById('reqProductList').value;
+      const dueDate = document.getElementById('reqDueDate').value;
+
+      const checkedDocs = [];
+      document.querySelectorAll('input[name="reqDocs"]:checked').forEach(cb => {
+        checkedDocs.push(cb.value);
+      });
+
+      const subject = `[긴급/서류요청] ${brandName} 해외 수출 통관 및 인증 관련 필수 서류 요청 건 (${buyerCountry}향 / PI: ${piNo})`;
+
+      const body = `수신: ${brandName} 해외영업 및 인증 담당자님 귀하
+발신: (주)아델라인 해외영업본부 (Adeline Global Trade Inc.)
+일자: ${new Date().toISOString().split('T')[0]}
+참조 PI No: ${piNo}
+
+안녕하십니까, ${brandName} 담당자님.
+(주)아델라인 해외영업팀입니다. 귀사의 무궁한 발전을 기원합니다.
+
+금번 당사를 통해 진행되는 [${buyerCountry} - 바이어: ${buyerName}] 대상 수출 발주 건과 관련하여,
+현지 보건당국 수입 인허가 등록 및 세관 통관을 위한 필수 증빙 서류를 아래와 같이 긴급 요청드리오니 기한 내 회신을 정중히 부탁드립니다.
+
+============================================================
+[1] 수출 프로젝트 개요
+• 수입 바이어사: ${buyerName} (${buyerCountry})
+• 관련 PI No: ${piNo}
+• 대상 브랜드: ${brandName}
+• 대상 품목:
+${productList}
+
+[2] 요청 서류 목록 (필수 요청)
+${checkedDocs.map((d, i) => `${i + 1}. ${d}`).join('\n')}
+
+[3] 서류 제출 기한 및 회신 안내
+• 제출 마감 기한: ${dueDate} (목) 17:00 까지
+• 제출 형식: 본사 직인 및 날인이 포함된 고해상도 컬러 스캔본 (PDF 파일)
+• 회신처: (주)아델라인 해외영업팀 공식 이메일 (trade@adeline.co.kr)
+============================================================
+
+※ 안내사항:
+현지 세관 및 보건청 규정상 서류의 유효기간 및 전성분 영문 표기가 최신 규격과 일치하여야 합니다.
+서류 발급에 시일이 소요되는 경우 담당자 앞 유선 또는 메일로 사전에 공유 부탁드립니다.
+
+협조해 주셔서 대단히 감사드립니다.
+(주)아델라인 해외영업본부 드림.`;
+
+      document.getElementById('genEmailSubject').value = subject;
+      document.getElementById('genEmailBody').value = body;
+    }
+
+    function copyGeneratedLetter() {
+      const subject = document.getElementById('genEmailSubject').value;
+      const body = document.getElementById('genEmailBody').value;
+      const fullText = `[제목]\n${subject}\n\n[본문]\n${body}`;
+
+      navigator.clipboard.writeText(fullText).then(() => {
+        const btnText = document.getElementById('copyBtnText');
+        btnText.innerText = "복사 완료!";
+        setTimeout(() => { btnText.innerText = "전문 복사"; }, 2000);
+      }).catch(err => {
+        alert("클립보드 복사 권한이 없습니다. 텍스트를 직접 드래그하여 복사해주세요.");
+      });
+    }
+
+    function sendViaMailClient() {
+      const email = document.getElementById('reqBrandEmail').value;
+      const subject = encodeURIComponent(document.getElementById('genEmailSubject').value);
+      const body = encodeURIComponent(document.getElementById('genEmailBody').value);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
+
+    // ==================== Export / Import / Reset ====================
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(orders, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Adeline_Trade_SOP_Backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImport() {
+      document.getElementById('importFileInput').click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            orders = imported;
+            saveState();
+            renderOrders();
+            alert("백업 데이터가 성공적으로 복원되었습니다.");
+          } else {
+            alert("유효한 백업 JSON 파일 형식이 아닙니다.");
+          }
+        } catch (err) {
+          alert("파일 읽기 오류: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetData() {
+      if (!confirm("모든 데이터를 초기 샘플 데이터로 복구하시겠습니까? (기존 수정 내역은 초기화됩니다)")) return;
+      orders = JSON.parse(JSON.stringify(INITIAL_ORDERS));
+      saveState();
+      renderOrders();
+      alert("초기 데이터로 재설정되었습니다.");
+    }
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderOrders();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
