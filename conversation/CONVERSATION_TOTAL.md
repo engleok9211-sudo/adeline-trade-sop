@@ -321,3 +321,78 @@ Packing List (PL)
    - GitHub Pages 원격 푸시 완료 (`engleok9211-sudo/adeline-trade-sop`)
    - 로컬 구동: `http://localhost:8080` (화면에 최신 버전 자동 새로고침 및 팝업 대기)
    - 클라우드 라이브 서비스: `https://engleok9211-sudo.github.io/adeline-trade-sop/`
+
+
+---
+
+## [SESSION 008] 2026-11-15 10:20:41
+
+### 👑 본부장님 하명 전문 (Verbatim)
+
+```
+MSRP Retail price - 소비자가 
+Offer Price= 제안가, 명세가 , 영세율
+Rate Supply (%) - 공급률  
+
+공급가
+Supply Price/ Offer Price 
+공급업체(브랜드사)가 거래처에 공급하는 가격
+
+
+소비자가
+Retail Price
+최종 소비자가격(권장소비자가격인 경우는 Suggested Retail Price (SRP) 또는 MSRP)
+
+
+공급률 
+Supply Rate(%) 
+소비자가의 제안받은 공급가의 차지하는 퍼센트 비율
+
+
+inbox 인박스 
+outbox 아웃박스 
+Carton box 카톤박스 
+
+계산하는 방법
+-Supply rate(%) 
+아래 수식으로 직접 계산합니다.
+Supply Rate (%) = Offer Price ÷ MSRP Retail
+-Offer Price(KRW) 계산하는 방법 
+제안가, 명세가, 영세율, 또는 supply price로 표시됨.
+-Offer Price(USD) 계산하는 방법 
+Offer Price (USD)는 아래 수식으로 계산합니다.
+Offer Price (USD) = Offer Price (KRW) ÷ 환율
+예시)
+Offer Price (USD) = Offer Price (KRW) ÷ 1,480
+
+
+바이어사에게 보낼 필요한 정보는 
+-Supply rate(%) - 모두 값으로만 보여야합니다. 
+-Offer Price(KRW) 계산하는 방법 
+-Offer Price(USD) 계산하는 방법 
+-Order Qty / Order Total Amount 
+
+
+
+１。 브랜드사별로 양식이 다르므로  윈도우에 엑셀 파일을 다운 받습니다。
+```
+
+---
+
+### 🗣️ ADVISOR 총괄팀장 조치 및 보고 전문 (Verbatim)
+
+1. **무역 단가·공급률·환율 연산 공식 표준화 및 실시간 계산 엔진 완결**:
+   - `MSRP (소비자가격)`, `Offer Price (원화 제안가/명세가/영세율)`, `Supply Rate (%) = (Offer Price ÷ MSRP) * 100`, `Offer Price (USD) = Offer Price (KRW) ÷ 적용환율(1,480원)` 산출 공식 적용.
+   - 포장 물류 사양: `inbox (인박스 수량 ea)`, `outbox / Carton box (카톤박스 입수량 ea)`, `Order Qty (발주수량)`, `Cartons (총 박스수)`, `Order Total Amount (원화 및 달러 총액)` 실시간 자동 연산.
+   - 본부장님 하명 원칙에 따라 바이어사 전달 정보인 **Supply Rate(%)는 수식 없이 `40.0%` 등 계산된 순수 확정 값으로만 강조 배지 표기**하도록 설계하였습니다.
+2. **신규 메인 탭 5. [📊 오퍼 계산기 & 엑셀 견적서 (Offer Calculator & Sheet Generator)] 신설**:
+   - 브랜드사 DB 연동 (아누아, 조선미녀, 라운드랩, 스킨1004 카탈로그 자동 로드).
+   - 기준 환율(1,480원) 실시간 변경 기능 및 일괄 공급률 적용 버튼(`38%`, `40%`, `42%`, `45%`) 탑재.
+   - 품목별 소비자가, 공급가, 인박스, 카톤, 발주수량 실시간 인라인 편집 지원.
+3. **브랜드사별 양식 맞춤 윈도우 엑셀(.xlsx) 원클릭 다운로드 엔진 탑재**:
+   - SheetJS 라이브러리를 완전 내장하여 화면의 **[📥 윈도우 엑셀 다운로드 (.xlsx)]** 클릭 즉시 브랜드사 헤더, 바이어 정보, 12대 칼럼 명세, 합계가 포함된 정식 엑셀 파일이 윈도우 PC로 즉시 내려받아집니다.
+   - 공식 엑셀 샘플 파일 2종(`result/[014]_아누아.xlsx`, `result/[015]_조선미녀.xlsx`) 사전 제작 및 직통 다운로드 링크 완비.
+4. **Git 동기화 및 클라우드 배포 최신화**:
+   - GitHub Pages 원격 푸시 완료 (`engleok9211-sudo/adeline-trade-sop`)
+   - 로컬 웹서버: `http://localhost:8080` (최신 v4 앱 화면에 자동 갱신 호출)
+   - 클라우드 라이브 서비스: `https://engleok9211-sudo.github.io/adeline-trade-sop/`

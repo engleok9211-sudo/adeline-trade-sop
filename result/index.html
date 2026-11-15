@@ -7,6 +7,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
@@ -178,9 +179,14 @@
           <i data-lucide="send" class="w-4 h-4"></i>
           <span>4. 브랜드 서류 자동 요청</span>
         </button>
+        <button onclick="switchTab('offersheet')" id="tab-offersheet-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 shrink-0">
+          <i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i>
+          <span>5. 오퍼 계산기 & 엑셀 견적서</span>
+          <span class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 text-[10px] rounded-full border border-emerald-500/30 font-bold">XLSX</span>
+        </button>
         <button onclick="switchTab('guide')" id="tab-guide-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 shrink-0">
           <i data-lucide="book-open-check" class="w-4 h-4"></i>
-          <span>5. 아델라인 SOP 매뉴얼</span>
+          <span>6. 아델라인 SOP 매뉴얼</span>
         </button>
       </nav>
     </div>
@@ -531,7 +537,193 @@
       </div>
     </section>
 
-  </main>
+  
+    <!-- ==================== TAB 5: 오퍼 계산기 & 브랜드사별 엑셀 견적서 ==================== -->
+    <section id="tab-offersheet" class="tab-content hidden space-y-6">
+      <!-- Header Banner -->
+      <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-black text-xs uppercase tracking-wider">OFFER CALCULATOR</span>
+            <span class="text-emerald-300 text-xs font-bold font-mono">EXPORT PRICE SIMULATOR</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black mt-1">해외영업 오퍼 계산기 & 브랜드별 엑셀 견적서</h2>
+          <p class="text-xs text-emerald-200 mt-1">
+            소비자가(MSRP), 공급제안가(KRW), 공급률(Supply Rate %), 제안가(USD), 포장단위(Inbox/Carton), 발주수량 및 총액을 실시간 자동 계산하고 윈도우 엑셀(.xlsx)로 다운로드합니다.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="downloadOfferSheetExcel()" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>윈도우 엑셀 다운로드 (.xlsx)</span>
+          </button>
+          <button onclick="printOfferSheet()" class="inline-flex items-center space-x-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs rounded-xl transition">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>인쇄 / PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Control Settings Card -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <!-- 1. Brand Selection -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">공급 브랜드사 선택</label>
+            <select id="offerBrandSelect" onchange="onOfferBrandChange()" class="w-full border border-slate-300 rounded-xl p-2.5 font-bold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-emerald-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- 2. Target Buyer -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">대상 바이어 (수출국가)</label>
+            <input type="text" id="offerBuyerName" value="BeautyHaul Inc. (미국 USA)" class="w-full border border-slate-300 rounded-xl p-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <!-- 3. Exchange Rate -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>기준 환율 (KRW / 1 USD)</span>
+              <span class="text-[10px] text-emerald-600 font-mono font-bold">수정 시 USD 실시간 연동</span>
+            </label>
+            <div class="relative">
+              <input type="number" id="offerExchangeRate" value="1480" step="1" oninput="recalcOfferSheet()" class="w-full border border-slate-300 rounded-xl p-2.5 font-mono font-black text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 pr-12">
+              <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">원</span>
+            </div>
+          </div>
+
+          <!-- 4. Batch Supply Rate Apply -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">공급률(%) 일괄 적용</label>
+            <div class="flex items-center space-x-1.5 pt-0.5">
+              <button onclick="applyBatchSupplyRate(0.38)" class="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-xs text-slate-700 border border-slate-200 transition">38%</button>
+              <button onclick="applyBatchSupplyRate(0.40)" class="px-2.5 py-2 rounded-lg bg-emerald-100 text-emerald-800 font-black text-xs border border-emerald-300 transition">40%</button>
+              <button onclick="applyBatchSupplyRate(0.42)" class="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-xs text-slate-700 border border-slate-200 transition">42%</button>
+              <button onclick="applyBatchSupplyRate(0.45)" class="px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-xs text-slate-700 border border-slate-200 transition">45%</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formula Guide Alert -->
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+            <div>
+              <strong class="text-slate-800">계산 공식 표준:</strong>
+              <span>Supply Rate(%) = Offer Price(KRW) ÷ MSRP Retail • Offer Price(USD) = Offer Price(KRW) ÷ 환율(1,480)</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 text-[11px]">
+            <span class="text-slate-400">사전 제작 엑셀 서식:</span>
+            <a href="result/[014]_해외영업_오퍼시트_샘플_ANUA_아누아.xlsx" download class="font-bold text-emerald-700 hover:underline flex items-center space-x-0.5">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+              <span>아누아 양식</span>
+            </a>
+            <span class="text-slate-300">•</span>
+            <a href="result/[015]_해외영업_오퍼시트_샘플_BOJ_조선미녀.xlsx" download class="font-bold text-blue-700 hover:underline flex items-center space-x-0.5">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+              <span>조선미녀 양식</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Offer Table Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50">
+          <div class="flex items-center space-x-2">
+            <h3 class="font-black text-slate-900 text-sm flex items-center space-x-1.5">
+              <i data-lucide="table" class="w-4 h-4 text-emerald-600"></i>
+              <span id="offerTableTitle">브랜드사 공식 오퍼 품목 명세</span>
+            </h3>
+            <span id="offerBrandBadge" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">ANUA</span>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <button onclick="addEmptyOfferRow()" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg border border-slate-200 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>품목 추가</span>
+            </button>
+            <button onclick="resetOfferSheetToBrandDefault()" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg border border-slate-200 transition">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>초기화</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-900 text-white font-bold text-[11px] whitespace-nowrap">
+                <th class="py-3 px-3 text-center w-10">No</th>
+                <th class="py-3 px-4 min-w-[220px]">품목명 (규격 / Description)</th>
+                <th class="py-3 px-3 text-right w-28">MSRP 소비자가 (KRW)</th>
+                <th class="py-3 px-3 text-right w-32">Offer Price 공급제안가 (KRW)</th>
+                <th class="py-3 px-3 text-center w-28 bg-emerald-950 text-emerald-300">Supply Rate 공급률 (%)</th>
+                <th class="py-3 px-3 text-right w-28 bg-emerald-950 text-emerald-300">Offer Price 제안가 (USD)</th>
+                <th class="py-3 px-2 text-center w-20">Inbox (인박스)</th>
+                <th class="py-3 px-2 text-center w-20">Carton (카톤)</th>
+                <th class="py-3 px-3 text-right w-28">Order Qty 주문수량</th>
+                <th class="py-3 px-2 text-center w-20">Cartons (박스수)</th>
+                <th class="py-3 px-3 text-right w-32">주문총액 (KRW)</th>
+                <th class="py-3 px-3 text-right w-32">주문총액 (USD)</th>
+                <th class="py-3 px-2 text-center w-12">삭제</th>
+              </tr>
+            </thead>
+            <tbody id="offerTableBody" class="divide-y divide-slate-200 font-medium">
+              <!-- Dynamically populated -->
+            </tbody>
+            <tfoot class="bg-amber-50/70 border-t-2 border-slate-900 font-bold">
+              <tr class="text-xs text-slate-900 whitespace-nowrap">
+                <td colspan="8" class="py-3.5 px-4 text-right uppercase tracking-wider font-black text-amber-950">
+                  TOTAL ORDER SUMMARY (합계):
+                </td>
+                <td id="kpiTotalOrderQty" class="py-3.5 px-3 text-right font-mono font-black text-slate-900 text-sm">0 ea</td>
+                <td id="kpiTotalCartons" class="py-3.5 px-2 text-center font-mono text-slate-700">0 CTNS</td>
+                <td id="kpiTotalAmountKRW" class="py-3.5 px-3 text-right font-mono font-black text-slate-900 text-sm">₩ 0</td>
+                <td id="kpiTotalAmountUSD" class="py-3.5 px-3 text-right font-mono font-black text-blue-900 text-sm">$ 0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">총 발주 수량 (Order Qty)</p>
+          <div class="flex items-baseline space-x-1.5 mt-1">
+            <span id="cardTotalQty" class="text-xl font-black text-slate-900 font-mono">0</span>
+            <span class="text-xs text-slate-400 font-bold">ea</span>
+          </div>
+          <p id="cardTotalCartons" class="text-[11px] text-slate-500 mt-0.5 font-mono">0 Cartons</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">총 수주 공급액 (KRW)</p>
+          <div class="flex items-baseline space-x-1.5 mt-1">
+            <span id="cardTotalKRW" class="text-xl font-black text-emerald-600 font-mono">₩ 0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">영세율 부가세 포함 조건</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">바이어 결제 총액 (USD)</p>
+          <div class="flex items-baseline space-x-1.5 mt-1">
+            <span id="cardTotalUSD" class="text-xl font-black text-blue-600 font-mono">$ 0.00</span>
+          </div>
+          <p id="cardAppliedFX" class="text-[11px] text-slate-500 mt-0.5 font-mono">환율 1,480원 적용</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">평균 공급률 (Supply Rate)</p>
+          <div class="flex items-baseline space-x-1.5 mt-1">
+            <span id="cardAvgRate" class="text-xl font-black text-indigo-600 font-mono">0.0%</span>
+          </div>
+          <p class="text-[11px] text-emerald-600 mt-0.5 font-bold">MSRP 대비 값으로만 표기</p>
+        </div>
+      </div>
+    </section>
+
+</main>
 
   <!-- ==================== MODALS ==================== -->
 
@@ -1191,7 +1383,8 @@
       if (tabId === 'workflow') renderWorkflowEngine();
       if (tabId === 'brands') renderBrandList();
       if (tabId === 'cabinet') initCabinetTab();
-      if (tabId === 'doc-request') populateDocReqForm();
+      if (tabId === 'doc-request' || tabId === 'docreq') populateDocReqForm();
+      if (tabId === 'offersheet') initOfferSheetTab();
 
       lucide.createIcons();
     }
@@ -3492,6 +3685,384 @@
         }
       }
     });
+
+
+    // =========================================================================
+    // 📊 [OFFER CALCULATOR & EXCEL EXPORT ENGINE] 해외영업 오퍼 계산기 & 엑셀 다운로더
+    // =========================================================================
+
+    // 브랜드사별 사전 정의 품목 카탈로그 DB
+    const BRAND_CATALOG_DATA = {
+      "아누아 (ANUA)": {
+        brandName: "아누아 (ANUA)",
+        company: "(주)더파운더즈",
+        colorHex: "065F46", // Deep Emerald
+        items: [
+          { name: "아누아 어성초 77% 진정 토너 250ml", msrp: 23000, offerKRW: 9200, inbox: 6, carton: 48, orderQty: 4800 },
+          { name: "아누아 어성초 77% 진정 토너 500ml (대용량)", msrp: 38000, offerKRW: 15200, inbox: 6, carton: 24, orderQty: 2400 },
+          { name: "아누아 어성초 포어 컨트롤 클렌징 오일 200ml", msrp: 20000, offerKRW: 8000, inbox: 12, carton: 48, orderQty: 3600 },
+          { name: "아누아 복숭아 70% 나이아신 세럼 30ml", msrp: 28000, offerKRW: 11200, inbox: 12, carton: 72, orderQty: 2160 },
+          { name: "아누아 어성초 70% 데일리 로션 200ml", msrp: 24000, offerKRW: 9600, inbox: 8, carton: 48, orderQty: 1440 }
+        ]
+      },
+      "조선미녀 (Beauty of Joseon)": {
+        brandName: "조선미녀 (Beauty of Joseon)",
+        company: "(주)구다이글로벌",
+        colorHex: "1E3A8A", // Classic Navy
+        items: [
+          { name: "조선미녀 맑은쌀선크림 (SPF50+ PA++++) 50ml", msrp: 18000, offerKRW: 7200, inbox: 10, carton: 60, orderQty: 12000 },
+          { name: "조선미녀 인삼 리바이브 세럼 30ml", msrp: 17000, offerKRW: 6800, inbox: 12, carton: 72, orderQty: 3600 },
+          { name: "조선미녀 글로우 딥 세럼 (쌀+알부틴) 30ml", msrp: 17000, offerKRW: 6800, inbox: 12, carton: 72, orderQty: 2880 },
+          { name: "조선미녀 인삼 아이크림 (레티날) 30ml", msrp: 19000, offerKRW: 7600, inbox: 10, carton: 60, orderQty: 3000 },
+          { name: "조선미녀 청정 팥 워시오프 마스크 140ml", msrp: 19000, offerKRW: 7600, inbox: 6, carton: 36, orderQty: 1440 }
+        ]
+      },
+      "라운드랩 (ROUND LAB)": {
+        brandName: "라운드랩 (ROUND LAB)",
+        company: "(주)서린컴퍼니",
+        colorHex: "0284C7", // Sky Blue
+        items: [
+          { name: "라운드랩 1025 독도 토너 200ml", msrp: 15000, offerKRW: 6300, inbox: 8, carton: 48, orderQty: 4800 },
+          { name: "라운드랩 1025 독도 토너 500ml (대용량)", msrp: 30000, offerKRW: 12600, inbox: 6, carton: 24, orderQty: 2400 },
+          { name: "라운드랩 자작나무 수분 선크림 50ml", msrp: 25000, offerKRW: 10500, inbox: 10, carton: 60, orderQty: 6000 },
+          { name: "라운드랩 1025 독도 로션 200ml", msrp: 20000, offerKRW: 8400, inbox: 8, carton: 48, orderQty: 1920 }
+        ]
+      },
+      "스킨1004 (SKIN1004)": {
+        brandName: "스킨1004 (SKIN1004)",
+        company: "(주)크레이버코퍼레이션",
+        colorHex: "D97706", // Amber Gold
+        items: [
+          { name: "스킨1004 마다가스카르 센텔라 앰플 55ml", msrp: 19000, offerKRW: 7600, inbox: 12, carton: 72, orderQty: 3600 },
+          { name: "스킨1004 마다가스카르 센텔라 앰플 100ml", msrp: 29000, offerKRW: 11600, inbox: 8, carton: 48, orderQty: 2400 },
+          { name: "스킨1004 히알루-시카 워터핏 선세럼 50ml", msrp: 20000, offerKRW: 8000, inbox: 12, carton: 72, orderQty: 7200 },
+          { name: "스킨1004 센텔라 토닝 토너 210ml", msrp: 21000, offerKRW: 8400, inbox: 8, carton: 48, orderQty: 1920 }
+        ]
+      }
+    };
+
+    let currentOfferItems = [];
+    let currentOfferBrand = "아누아 (ANUA)";
+
+    function initOfferSheetTab() {
+      const brandSel = document.getElementById('offerBrandSelect');
+      if (!brandSel) return;
+
+      const brandNames = Object.keys(BRAND_CATALOG_DATA);
+      brandSel.innerHTML = brandNames.map(b => `<option value="${b}">${b}</option>`).join('');
+
+      if (!currentOfferBrand || !BRAND_CATALOG_DATA[currentOfferBrand]) {
+        currentOfferBrand = brandNames[0];
+      }
+      brandSel.value = currentOfferBrand;
+
+      resetOfferSheetToBrandDefault();
+    }
+
+    function onOfferBrandChange() {
+      currentOfferBrand = document.getElementById('offerBrandSelect').value;
+      resetOfferSheetToBrandDefault();
+    }
+
+    function resetOfferSheetToBrandDefault() {
+      const brandData = BRAND_CATALOG_DATA[currentOfferBrand] || BRAND_CATALOG_DATA["아누아 (ANUA)"];
+      currentOfferItems = JSON.parse(JSON.stringify(brandData.items));
+
+      const titleEl = document.getElementById('offerTableTitle');
+      const badgeEl = document.getElementById('offerBrandBadge');
+      if (titleEl) titleEl.innerText = `${brandData.brandName} 수출 견적 및 오퍼 명세`;
+      if (badgeEl) {
+        badgeEl.innerText = brandData.company;
+        badgeEl.style.backgroundColor = `#${brandData.colorHex}20`;
+        badgeEl.style.color = `#${brandData.colorHex}`;
+      }
+
+      renderOfferSheetTable();
+    }
+
+    function renderOfferSheetTable() {
+      const tbody = document.getElementById('offerTableBody');
+      if (!tbody) return;
+
+      const fxRate = Number(document.getElementById('offerExchangeRate')?.value) || 1480;
+
+      let totalOrderQty = 0;
+      let totalCartons = 0;
+      let totalAmountKRW = 0;
+      let totalAmountUSD = 0;
+      let totalMSRPKRW = 0;
+
+      tbody.innerHTML = currentOfferItems.map((item, idx) => {
+        const msrp = Number(item.msrp) || 0;
+        const offerKRW = Number(item.offerKRW) || 0;
+        const orderQty = Number(item.orderQty) || 0;
+        const inbox = Number(item.inbox) || 12;
+        const carton = Number(item.carton) || 48;
+
+        // 1. Supply Rate (%) = (Offer Price ÷ MSRP) * 100
+        const supplyRateNum = msrp > 0 ? (offerKRW / msrp) * 100 : 0;
+        const supplyRateStr = supplyRateNum.toFixed(1) + "%";
+
+        // 2. Offer Price (USD) = Offer Price (KRW) ÷ FX Rate
+        const offerUSD = fxRate > 0 ? (offerKRW / fxRate) : 0;
+
+        // 3. Totals
+        const cartonsCount = carton > 0 ? Math.ceil(orderQty / carton) : 0;
+        const rowTotalKRW = orderQty * offerKRW;
+        const rowTotalUSD = orderQty * offerUSD;
+
+        totalOrderQty += orderQty;
+        totalCartons += cartonsCount;
+        totalAmountKRW += rowTotalKRW;
+        totalAmountUSD += rowTotalUSD;
+        totalMSRPKRW += (orderQty * msrp);
+
+        return `
+          <tr class="hover:bg-slate-50 transition whitespace-nowrap text-xs">
+            <td class="py-2.5 px-3 text-center font-mono text-slate-400">${idx + 1}</td>
+            <td class="py-2.5 px-4 font-bold text-slate-900">
+              <input type="text" value="${item.name}" onchange="updateOfferItem(${idx}, 'name', this.value)" class="w-full bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white px-1 py-0.5 rounded font-bold text-slate-800">
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <input type="number" value="${msrp}" step="100" onchange="updateOfferItem(${idx}, 'msrp', this.value)" class="w-24 text-right bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white px-1 py-0.5 rounded font-mono">
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <input type="number" value="${offerKRW}" step="100" onchange="updateOfferItem(${idx}, 'offerKRW', this.value)" class="w-24 text-right bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white px-1 py-0.5 rounded font-mono font-bold text-slate-900">
+            </td>
+            <!-- Supply Rate: 값으로만 표기 -->
+            <td class="py-2.5 px-3 text-center bg-emerald-50/50">
+              <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black font-mono text-xs shadow-sm">
+                ${supplyRateStr}
+              </span>
+            </td>
+            <!-- Offer Price USD -->
+            <td class="py-2.5 px-3 text-right font-mono font-black text-blue-900 bg-blue-50/30 text-xs">
+              $ ${offerUSD.toFixed(2)}
+            </td>
+            <td class="py-2.5 px-2 text-center">
+              <input type="number" value="${inbox}" onchange="updateOfferItem(${idx}, 'inbox', this.value)" class="w-12 text-center bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white font-mono text-xs">
+            </td>
+            <td class="py-2.5 px-2 text-center">
+              <input type="number" value="${carton}" onchange="updateOfferItem(${idx}, 'carton', this.value)" class="w-12 text-center bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white font-mono text-xs">
+            </td>
+            <td class="py-2.5 px-3 text-right">
+              <input type="number" value="${orderQty}" step="100" onchange="updateOfferItem(${idx}, 'orderQty', this.value)" class="w-24 text-right bg-transparent hover:bg-white border-b border-transparent hover:border-slate-300 focus:border-emerald-500 focus:bg-white font-mono font-bold text-slate-900">
+            </td>
+            <td class="py-2.5 px-2 text-center font-mono text-slate-600">
+              ${cartonsCount.toLocaleString()}
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+              ₩ ${rowTotalKRW.toLocaleString()}
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono font-black text-blue-700">
+              $ ${rowTotalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </td>
+            <td class="py-2.5 px-2 text-center">
+              <button onclick="deleteOfferRow(${idx})" class="text-slate-300 hover:text-rose-600 transition" title="품목 삭제">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Update TFoot
+      document.getElementById('kpiTotalOrderQty').innerText = `${totalOrderQty.toLocaleString()} ea`;
+      document.getElementById('kpiTotalCartons').innerText = `${totalCartons.toLocaleString()} CTNS`;
+      document.getElementById('kpiTotalAmountKRW').innerText = `₩ ${totalAmountKRW.toLocaleString()}`;
+      document.getElementById('kpiTotalAmountUSD').innerText = `$ ${totalAmountUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      // Update KPI Cards
+      document.getElementById('cardTotalQty').innerText = totalOrderQty.toLocaleString();
+      document.getElementById('cardTotalCartons').innerText = `${totalCartons.toLocaleString()} Cartons`;
+      document.getElementById('cardTotalKRW').innerText = `₩ ${totalAmountKRW.toLocaleString()}`;
+      document.getElementById('cardTotalUSD').innerText = `$ ${totalAmountUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('cardAppliedFX').innerText = `환율 ${fxRate.toLocaleString()}원 적용`;
+
+      const avgRate = totalMSRPKRW > 0 ? ((totalAmountKRW / totalMSRPKRW) * 100).toFixed(1) : "0.0";
+      document.getElementById('cardAvgRate').innerText = `${avgRate}%`;
+
+      lucide.createIcons();
+    }
+
+    function updateOfferItem(idx, field, value) {
+      if (!currentOfferItems[idx]) return;
+      if (field === 'name') {
+        currentOfferItems[idx].name = value.trim();
+      } else {
+        currentOfferItems[idx][field] = Number(value) || 0;
+      }
+      renderOfferSheetTable();
+    }
+
+    function applyBatchSupplyRate(targetRate) {
+      currentOfferItems.forEach(item => {
+        const msrp = Number(item.msrp) || 0;
+        item.offerKRW = Math.round(msrp * targetRate);
+      });
+      renderOfferSheetTable();
+    }
+
+    function recalcOfferSheet() {
+      renderOfferSheetTable();
+    }
+
+    function addEmptyOfferRow() {
+      currentOfferItems.push({
+        name: "신규 화장품 품목",
+        msrp: 20000,
+        offerKRW: 8000,
+        inbox: 12,
+        carton: 48,
+        orderQty: 2400
+      });
+      renderOfferSheetTable();
+    }
+
+    function deleteOfferRow(idx) {
+      if (currentOfferItems.length <= 1) {
+        alert("최소 1개 이상의 품목이 존재해야 합니다.");
+        return;
+      }
+      currentOfferItems.splice(idx, 1);
+      renderOfferSheetTable();
+    }
+
+    // =========================================================================
+    // 📥 [EXCEL DOWNLOADER] 윈도우 엑셀 파일(.xlsx) 실시간 빌드 & 다운로드
+    // =========================================================================
+    function downloadOfferSheetExcel() {
+      if (typeof XLSX === 'undefined') {
+        alert("엑셀 생성 라이브러리(SheetJS)를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+
+      const brandData = BRAND_CATALOG_DATA[currentOfferBrand] || { brandName: currentOfferBrand, company: "공급사" };
+      const buyerName = document.getElementById('offerBuyerName')?.value || 'BeautyHaul Inc.';
+      const fxRate = Number(document.getElementById('offerExchangeRate')?.value) || 1480;
+      const today = new Date().toISOString().split('T')[0];
+
+      // 1. Header Information Rows
+      const excelRows = [
+        ["OFFICIAL EXPORT OFFER SHEET - " + brandData.brandName.toUpperCase()],
+        ["ADELINE GLOBAL TRADE INC. • BRAND SOURCING DIVISION"],
+        [],
+        ["Buyer / Importer:", buyerName, "", "Brand Name:", brandData.brandName, "", "Offer Date:", today],
+        ["Incoterms:", "FOB Busan, Korea", "", "Manufacturer:", brandData.company, "", "Currency:", "USD"],
+        ["Payment Terms:", "100% T/T in Advance", "", "Exchange Rate:", `${fxRate.toLocaleString()} KRW / 1 USD`, "", "Lead Time:", "Ready for Dispatch"],
+        [],
+        [
+          "No",
+          "Product Description",
+          "MSRP Retail (KRW)",
+          "Offer Price (KRW)",
+          "Supply Rate (%)",
+          "Offer Price (USD)",
+          "Inbox (ea)",
+          "Carton Box (ea)",
+          "Order Qty (ea)",
+          "Order Cartons (CTNS)",
+          "Order Total (KRW)",
+          "Order Total (USD)"
+        ]
+      ];
+
+      // 2. Data Rows
+      let totalQty = 0;
+      let totalCartons = 0;
+      let totalKRW = 0;
+      let totalUSD = 0;
+
+      currentOfferItems.forEach((item, idx) => {
+        const msrp = Number(item.msrp) || 0;
+        const offerKRW = Number(item.offerKRW) || 0;
+        const orderQty = Number(item.orderQty) || 0;
+        const inbox = Number(item.inbox) || 12;
+        const carton = Number(item.carton) || 48;
+
+        const supplyRate = msrp > 0 ? (offerKRW / msrp) * 100 : 0;
+        const supplyRateStr = supplyRate.toFixed(1) + "%"; // 값으로만 표기
+        const offerUSD = fxRate > 0 ? Number((offerKRW / fxRate).toFixed(2)) : 0;
+        const cartonsCount = carton > 0 ? Math.ceil(orderQty / carton) : 0;
+        const rowKRW = orderQty * offerKRW;
+        const rowUSD = Number((orderQty * offerUSD).toFixed(2));
+
+        totalQty += orderQty;
+        totalCartons += cartonsCount;
+        totalKRW += rowKRW;
+        totalUSD += rowUSD;
+
+        excelRows.push([
+          idx + 1,
+          item.name,
+          msrp,
+          offerKRW,
+          supplyRateStr,
+          offerUSD,
+          inbox,
+          carton,
+          orderQty,
+          cartonsCount,
+          rowKRW,
+          rowUSD
+        ]);
+      });
+
+      // 3. Total Row
+      excelRows.push([
+        "",
+        "TOTAL ORDER AMOUNT (합계)",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        totalQty,
+        totalCartons,
+        totalKRW,
+        totalUSD
+      ]);
+
+      excelRows.push([]);
+      excelRows.push(["[Price & Calculation Standard Guide]"]);
+      excelRows.push(["1. Supply Rate (%) = Offer Price (KRW) / MSRP Retail Price (Expressed as pure value)"]);
+      excelRows.push([`2. Offer Price (USD) = Offer Price (KRW) / Applied FX Rate (${fxRate.toLocaleString()} KRW/USD)`]);
+      excelRows.push(["3. Invoiced by ADELINE GLOBAL TRADE INC. • Standard Zero-Rated Export Commercial Terms"]);
+
+      // Build Workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(excelRows);
+
+      // Set Column Widths
+      ws['!cols'] = [
+        { wch: 6 },  // No
+        { wch: 38 }, // Name
+        { wch: 18 }, // MSRP
+        { wch: 18 }, // Offer KRW
+        { wch: 16 }, // Supply Rate %
+        { wch: 16 }, // Offer USD
+        { wch: 12 }, // Inbox
+        { wch: 14 }, // Carton
+        { wch: 15 }, // Qty
+        { wch: 14 }, // Cartons
+        { wch: 20 }, // Total KRW
+        { wch: 20 }  // Total USD
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Offer_Sheet");
+
+      // File Name
+      const brandClean = brandData.brandName.split(' ')[0].replace(/[^a-zA-Z0-9가-힣]/g, '');
+      const buyerClean = buyerName.split(' ')[0].replace(/[^a-zA-Z0-9가-힣]/g, '');
+      const fileName = `Export_Offer_Sheet_${brandClean}_${buyerClean}_${today}.xlsx`;
+
+      XLSX.writeFile(wb, fileName);
+    }
+
+    function printOfferSheet() {
+      window.print();
+    }
 
     // INIT
     window.addEventListener('DOMContentLoaded', () => {
