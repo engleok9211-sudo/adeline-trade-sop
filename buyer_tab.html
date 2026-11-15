@@ -1,0 +1,353 @@
+    <!-- ==================== TAB 3: 바이어사 발굴 & 관리 (BUYER DEVELOPMENT) ==================== -->
+    <section id="tab-buyers" class="tab-content hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        
+        <!-- Header & Action Toolbar -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-black">2026 GLOBAL BUYER PIPELINE</span>
+              <h2 class="text-base font-black text-slate-900 flex items-center space-x-2">
+                <i data-lucide="users-round" class="w-5 h-5 text-emerald-600"></i>
+                <span>글로벌 바이어 발굴 & 개발 관리 (Buyer Development Proposal 2026)</span>
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              'Buyer Development Proposal 2026.xlsx' 17개 시트 전수 연동 — 시트별 탭 전환, 엑셀 일괄 업로드(Batch Import), 인라인 셀 편집(Inline Edit) 및 실시간 스프레드시트 통합 관리
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Excel Batch Import Button -->
+            <button type="button" onclick="openBuyerImportModal()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span>엑셀 일괄 업로드 (Import)</span>
+            </button>
+
+            <!-- Add Row Button -->
+            <button type="button" onclick="addNewBuyerRow()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>+ 신규 바이어 행 추가</span>
+            </button>
+
+            <!-- Export to Excel Button -->
+            <button type="button" onclick="exportBuyersToExcel()" class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-white shadow-sm transition cursor-pointer">
+              <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+              <span>엑셀 다운로드 (XLSX)</span>
+            </button>
+
+            <!-- Delete Selected -->
+            <button type="button" onclick="deleteSelectedBuyers()" class="inline-flex items-center space-x-1 px-2.5 py-2 text-xs font-bold rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>선택 삭제</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Mini Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase">총 등록 바이어</p>
+              <p id="kpiBuyerTotal" class="text-xl font-black text-slate-900 mt-0.5">1,315</p>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
+              <i data-lucide="building" class="w-4 h-4"></i>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase">계약/활성 바이어 (Buyer)</p>
+              <p id="kpiBuyerActive" class="text-xl font-black text-emerald-600 mt-0.5">0</p>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase">관심/유력 (Interested)</p>
+              <p id="kpiBuyerInterested" class="text-xl font-black text-blue-600 mt-0.5">0</p>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+              <i data-lucide="star" class="w-4 h-4"></i>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase">발굴 대상 국가수</p>
+              <p id="kpiBuyerCountries" class="text-xl font-black text-purple-600 mt-0.5">45+</p>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">
+              <i data-lucide="globe" class="w-4 h-4"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Excel Sheet-Style Tabs Navigation -->
+        <div class="border-b border-slate-200 overflow-x-auto custom-scrollbar pt-1">
+          <div class="flex space-x-1 shrink-0" id="buyerSheetTabs">
+            <button type="button" onclick="filterBuyerBySheet('ALL')" id="tabBuyerSheet_ALL" class="buyer-sheet-tab active px-3.5 py-2 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-1.5 transition">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span>전체 통합 (ALL)</span>
+              <span id="badgeBuyerCount_ALL" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono">1315</span>
+            </button>
+            <button type="button" onclick="filterBuyerBySheet('Master DB')" id="tabBuyerSheet_Master DB" class="buyer-sheet-tab px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i>
+              <span>Master 바이어 풀</span>
+              <span id="badgeBuyerCount_Master DB" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-700 font-mono">1160</span>
+            </button>
+            <button type="button" onclick="filterBuyerBySheet('Dasique')" id="tabBuyerSheet_Dasique" class="buyer-sheet-tab px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-pink-500"></i>
+              <span>데이지크 (Dasique)</span>
+              <span id="badgeBuyerCount_Dasique" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-pink-100 text-pink-700 font-mono">13</span>
+            </button>
+            <button type="button" onclick="filterBuyerBySheet('Rovectin')" id="tabBuyerSheet_Rovectin" class="buyer-sheet-tab px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-sky-500"></i>
+              <span>로벡틴 (Rovectin)</span>
+              <span id="badgeBuyerCount_Rovectin" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-sky-100 text-sky-700 font-mono">65</span>
+            </button>
+            <button type="button" onclick="filterBuyerBySheet('Tfit')" id="tabBuyerSheet_Tfit" class="buyer-sheet-tab px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span>티핏 (Tfit)</span>
+              <span id="badgeBuyerCount_Tfit" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-700 font-mono">51</span>
+            </button>
+            <button type="button" onclick="filterBuyerBySheet('Fair 2025')" id="tabBuyerSheet_Fair 2025" class="buyer-sheet-tab px-3 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
+              <i data-lucide="award" class="w-3.5 h-3.5 text-purple-500"></i>
+              <span>Korea Sourcing Fair 2025</span>
+              <span id="badgeBuyerCount_Fair 2025" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 text-purple-700 font-mono">26</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Country Filter -->
+            <div class="flex items-center space-x-1">
+              <span class="font-bold text-slate-600 text-[11px]">국가:</span>
+              <select id="buyerCountryFilter" onchange="handleBuyerFilterChange()" class="border border-slate-300 rounded-lg py-1 px-2.5 bg-white text-xs font-medium focus:ring-1 focus:ring-emerald-500 focus:outline-none max-w-[140px]">
+                <option value="ALL">전체 국가</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="flex items-center space-x-1">
+              <span class="font-bold text-slate-600 text-[11px]">상태:</span>
+              <select id="buyerStatusFilter" onchange="handleBuyerFilterChange()" class="border border-slate-300 rounded-lg py-1 px-2.5 bg-white text-xs font-medium focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                <option value="ALL">전체 상태</option>
+                <option value="Buyer">Buyer (계약/확정)</option>
+                <option value="Potential">Potential (유력/검토)</option>
+                <option value="Interested">Interested (관심 회신)</option>
+                <option value="Pending">Pending (컨택 대기)</option>
+                <option value="On Hold">On Hold (보류)</option>
+                <option value="Active">Active (활성)</option>
+              </select>
+            </div>
+
+            <!-- Company Size Filter -->
+            <div class="flex items-center space-x-1">
+              <span class="font-bold text-slate-600 text-[11px]">규모:</span>
+              <select id="buyerSizeFilter" onchange="handleBuyerFilterChange()" class="border border-slate-300 rounded-lg py-1 px-2.5 bg-white text-xs font-medium focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                <option value="ALL">전체 규모</option>
+                <option value="Big">Big (대형/체인)</option>
+                <option value="Mid">Mid (중형)</option>
+                <option value="Small">Small (소형/온라인)</option>
+              </select>
+            </div>
+
+            <!-- Clear Filter Button -->
+            <button type="button" onclick="clearBuyerFilters()" class="px-2.5 py-1 text-slate-500 hover:text-slate-800 border border-slate-200 bg-white rounded-lg transition font-medium">
+              초기화
+            </button>
+          </div>
+
+          <!-- Search Input & Page Size -->
+          <div class="flex items-center space-x-2">
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="buyerSearchInput" oninput="handleBuyerFilterChange()" placeholder="바이어명, 국가, 이메일, 담당자 검색..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+            </div>
+
+            <!-- Page Size -->
+            <select id="buyerPageSizeSelect" onchange="setBuyerPageSize(this.value)" class="border border-slate-300 rounded-lg py-1.5 px-2 bg-white text-xs font-medium focus:outline-none">
+              <option value="50">50개씩</option>
+              <option value="100" selected>100개씩</option>
+              <option value="200">200개씩</option>
+              <option value="ALL">전체 보기</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inline Edit Hint Bar -->
+        <div class="flex items-center justify-between text-[11px] px-1 text-slate-500">
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <i data-lucide="edit-3" class="w-3 h-3 mr-1"></i>
+              인라인 셀 편집 안내
+            </span>
+            <span>표 안의 각 셀(바이어명, 국가, 담당자, 이메일, 상태 등)을 <strong>더블클릭</strong>하면 엑셀처럼 즉시 수정 후 자동 저장됩니다.</span>
+          </div>
+          <div>
+            조회: <span id="buyerFilteredCount" class="font-bold text-slate-900">0</span>개 / 전체: <span id="buyerTotalCount" class="font-bold text-slate-900">0</span>개
+          </div>
+        </div>
+
+        <!-- Excel-Like Spreadsheet Grid Table -->
+        <div class="border border-slate-300 rounded-xl overflow-x-auto custom-scrollbar shadow-2xs max-h-[640px]">
+          <table class="w-full border-collapse text-left text-xs bg-white font-sans">
+            <thead class="bg-slate-100 text-slate-700 font-bold border-b-2 border-slate-300 sticky top-0 z-10 select-none text-[11px]">
+              <tr>
+                <th class="py-2 px-2.5 w-10 text-center bg-slate-100 border-r border-slate-200">
+                  <input type="checkbox" id="chkBuyerSelectAll" onchange="toggleAllBuyerCheckboxes(this)" class="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                </th>
+                <th class="py-2 px-2 w-12 text-center bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('no')">No. ↕</th>
+                <th class="py-2 px-2.5 w-24 bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('sheet')">시트구분 ↕</th>
+                <th class="py-2 px-3 w-28 bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('countryKor')">국가 (Country) ↕</th>
+                <th class="py-2 px-3 min-w-[170px] bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('company')">바이어사명 (Company) ↕ ✏️</th>
+                <th class="py-2 px-3 w-32 bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('pic')">담당자 (PIC) ✏️</th>
+                <th class="py-2 px-3 min-w-[200px] bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('email')">이메일 (Email) ✏️</th>
+                <th class="py-2 px-2.5 w-28 text-center bg-slate-100 border-r border-slate-200 cursor-pointer hover:bg-slate-200 transition" onclick="sortBuyer('status')">상태 (Status) ↕ ✏️</th>
+                <th class="py-2 px-3 w-28 bg-slate-100 border-r border-slate-200">업태 (Profile) ✏️</th>
+                <th class="py-2 px-2 w-16 text-center bg-slate-100 border-r border-slate-200">규모 ✏️</th>
+                <th class="py-2 px-3 min-w-[150px] bg-slate-100 border-r border-slate-200">관심/제안 브랜드 ✏️</th>
+                <th class="py-2 px-2 w-14 text-center bg-slate-100 border-r border-slate-200">웹링크</th>
+                <th class="py-2 px-3 min-w-[260px] bg-slate-100 border-r border-slate-200">기업 정보 & 상담/미팅 노트 ✏️</th>
+                <th class="py-2 px-2 w-12 text-center bg-slate-100">삭제</th>
+              </tr>
+            </thead>
+            <tbody id="buyerSpreadsheetBody" class="divide-y divide-slate-200 text-slate-800 font-normal">
+              <!-- Dynamically populated rows with inline edit support -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-200 text-xs">
+          <div class="text-slate-500">
+            페이지 <span id="buyerCurrentPage" class="font-bold text-slate-900">1</span> / <span id="buyerTotalPages" class="font-bold text-slate-900">1</span> (총 <span id="buyerPageItemsCount">0</span>건 표시 중)
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button type="button" onclick="changeBuyerPage(-1)" id="btnBuyerPrevPage" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 disabled:opacity-40 transition font-bold">
+              &lt; 이전
+            </button>
+            <button type="button" onclick="changeBuyerPage(1)" id="btnBuyerNextPage" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 disabled:opacity-40 transition font-bold">
+              다음 &gt;
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== EXCEL BATCH IMPORT MODAL ==================== -->
+    <div id="buyerImportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[92vh] overflow-y-auto custom-scrollbar">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <h3 class="text-base font-black text-slate-900 flex items-center space-x-2">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-blue-600"></i>
+            <span>엑셀 파일 일괄 업로드 및 자동 등록 (Excel Batch Import)</span>
+          </h3>
+          <button onclick="closeBuyerImportModal()" type="button" class="text-slate-400 hover:text-slate-600 p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500">
+          바이어 목록이 포함된 엑셀(.xlsx, .xls) 또는 CSV 파일을 업로드하면, 시트별 데이터를 자동 파싱 및 유효성 검증(필수 항목 체크) 후 시스템 DB에 즉시 일괄 등록합니다.
+        </p>
+
+        <!-- Dropzone / File Picker -->
+        <div class="p-5 border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/40 rounded-2xl text-center space-y-2 cursor-pointer transition" onclick="document.getElementById('buyerExcelFileInput').click()">
+          <input type="file" id="buyerExcelFileInput" accept=".xlsx,.xls,.csv" onchange="handleBuyerExcelUpload(event)" class="hidden">
+          <div class="w-12 h-12 mx-auto rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-800">클릭하여 엑셀 파일 선택 또는 여기에 드래그 앤 드롭</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">.xlsx, .xls, .csv 형식 지원</p>
+          </div>
+        </div>
+
+        <!-- Import Options & Preview Box (Hidden until file selected) -->
+        <div id="buyerImportPreviewContainer" class="hidden space-y-3 pt-2 border-t border-slate-200">
+          <!-- File info & Sheet Selector -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+            <div>
+              <span class="font-bold text-slate-600">업로드 파일명: </span>
+              <span id="buyerImportFileName" class="font-mono text-blue-700 font-bold">-</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-slate-600">가져올 시트: </span>
+              <select id="buyerImportSheetSelect" onchange="onBuyerImportSheetChange()" class="border border-slate-300 rounded-lg py-1 px-2 bg-white text-xs font-bold focus:outline-none flex-1">
+                <!-- Dynamically populated sheets -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Validation Summary Stats -->
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
+              <p class="text-[10px] text-emerald-700 font-bold">등록 가능 건수</p>
+              <p id="buyerImportValidCount" class="text-lg font-black text-emerald-800">0</p>
+            </div>
+            <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+              <p class="text-[10px] text-amber-700 font-bold">필수값 누락/제외</p>
+              <p id="buyerImportInvalidCount" class="text-lg font-black text-amber-800">0</p>
+            </div>
+            <div class="p-2.5 bg-purple-50 rounded-xl border border-purple-200">
+              <p class="text-[10px] text-purple-700 font-bold">총 파싱된 행수</p>
+              <p id="buyerImportTotalParsed" class="text-lg font-black text-purple-800">0</p>
+            </div>
+          </div>
+
+          <!-- Data Preview Table (First 5 Rows) -->
+          <div class="space-y-1">
+            <span class="font-bold text-slate-700 text-xs flex items-center space-x-1">
+              <i data-lucide="eye" class="w-3.5 h-3.5 text-slate-500"></i>
+              <span>데이터 미리보기 (상위 5건 샘플)</span>
+            </span>
+            <div class="border border-slate-200 rounded-xl overflow-x-auto custom-scrollbar max-h-40">
+              <table class="w-full text-[11px] text-left">
+                <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="py-1.5 px-2">바이어명</th>
+                    <th class="py-1.5 px-2">국가</th>
+                    <th class="py-1.5 px-2">담당자</th>
+                    <th class="py-1.5 px-2">이메일</th>
+                    <th class="py-1.5 px-2">상태</th>
+                  </tr>
+                </thead>
+                <tbody id="buyerImportPreviewTbody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Preview rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Target Sheet Name Input -->
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="font-bold text-slate-700 whitespace-nowrap">등록할 시트 탭 명칭:</span>
+            <input type="text" id="buyerImportCustomSheetName" placeholder="예: 신규_수입사_2026" class="border border-slate-300 rounded-lg p-1.5 bg-white font-bold text-slate-900 focus:ring-1 focus:ring-blue-500 focus:outline-none flex-1">
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeBuyerImportModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 text-xs font-bold transition">
+            취소
+          </button>
+          <button type="button" id="btnExecuteBatchInsert" onclick="executeBuyerBatchInsert()" disabled class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition cursor-pointer">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span>시스템 DB에 일괄 등록 (Batch Insert)</span>
+          </button>
+        </div>
+
+      </div>
+    </div>

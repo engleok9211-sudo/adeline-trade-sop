@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>바이어 주문서 (Order Sheet) - ADL-2026-US001</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; padding: 20px; }
+    .doc-paper { max-width: 850px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="doc-paper">
+
+            <div class="space-y-6 text-xs text-slate-800">
+              <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
+                <div>
+                  <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">
+                    OFFICIAL PURCHASE ORDER
+                  </h1>
+                  <p class="text-[11px] font-bold text-slate-500 tracking-wider">
+                    GLOBAL B2B PROCUREMENT &amp; MERCHANDISE ORDER SHEET
+                  </p>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-black text-blue-700 font-mono">P.O NO: PO-ADL-2026-US001</div>
+                  <div class="text-slate-500">Order Date: 2026-11-05</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div>
+                  <div class="font-bold text-slate-400 uppercase text-[10px] mb-1">
+                    BUYER / IMPORTER
+                  </div>
+                  <div class="text-sm font-black text-slate-900">BeautyHaul Inc.</div>
+                  <div class="text-slate-600 mt-0.5">Country: <strong>미국 (USA)</strong></div>
+                  <div class="text-slate-500 mt-1">Attn: Purchasing &amp; Global Sourcing Division</div>
+                  <div class="text-slate-500">Email: orders@beautyhaulinc.com</div>
+                </div>
+                <div>
+                  <div class="font-bold text-slate-400 uppercase text-[10px] mb-1">
+                    SUPPLIER / EXPORTER
+                  </div>
+                  <div class="text-sm font-black text-blue-900">ADELINE GLOBAL TRADE INC.</div>
+                  <div class="text-slate-600 mt-0.5">Gangnam Finance Center 24F, Teheran-ro 152, Seoul, South Korea</div>
+                  <div class="text-slate-500 mt-1">Tel: +82-2-588-9920 | Email: trade@adeline-global.com</div>
+                  <div class="text-slate-500">Brand: <strong class="text-indigo-700">아누아 (ANUA)</strong></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                  <span class="text-slate-500 text-[10px] block font-bold">INCOTERMS</span>
+                  <span class="font-black text-slate-800 text-sm">FOB Port of Busan, South Korea</span>
+                </div>
+                <div class="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                  <span class="text-slate-500 text-[10px] block font-bold">PAYMENT TERMS</span>
+                  <span class="font-black text-slate-800 text-sm">100% T/T in Advance</span>
+                </div>
+                <div class="p-2.5 bg-slate-100 rounded-lg border border-slate-200">
+                  <span class="text-slate-500 text-[10px] block font-bold">CURRENCY</span>
+                  <span class="font-black text-slate-800 text-sm">USD</span>
+                </div>
+              </div>
+
+              <table class="w-full border-collapse border border-slate-300">
+                <thead>
+                  <tr class="bg-slate-900 text-white text-[11px]">
+                    <th class="border border-slate-300 py-2.5 px-3 text-center w-12">No</th>
+                    <th class="border border-slate-300 py-2.5 px-4 text-left">Item Description / Product Specification</th>
+                    <th class="border border-slate-300 py-2.5 px-3 text-center w-24">Brand</th>
+                    <th class="border border-slate-300 py-2.5 px-3 text-right w-24">Q'ty</th>
+                    <th class="border border-slate-300 py-2.5 px-3 text-right w-28">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <tr>
+                    <td class="border border-slate-300 py-3 px-3 text-center font-mono">1</td>
+                    <td class="border border-slate-300 py-3 px-4 font-bold text-slate-800">
+                      어성초 토너 10,000ea, 클렌징오일 5,000ea
+                      <div class="text-[10px] text-slate-500 font-normal mt-0.5">• Standard Export Packaging (Carton + Pallet Shrink Wrapping)</div>
+                    </td>
+                    <td class="border border-slate-300 py-3 px-3 text-center font-semibold text-indigo-700">아누아 (ANUA)</td>
+                    <td class="border border-slate-300 py-3 px-3 text-right font-mono font-bold">1 Lot</td>
+                    <td class="border border-slate-300 py-3 px-3 text-right font-mono font-black text-blue-700 text-sm">
+                      USD 87,500
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="bg-slate-100 font-bold">
+                    <td colspan="4" class="border border-slate-300 py-2.5 px-4 text-right uppercase text-slate-700">TOTAL ORDER AMOUNT:</td>
+                    <td class="border border-slate-300 py-2.5 px-3 text-right font-mono text-base font-black text-blue-900">
+                      USD 87,500
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1 text-[11px] text-amber-900">
+                <div class="font-bold">Special Shipping &amp; Quality Requirements:</div>
+                <p>1. MSDS, INCI Breakdown, and Certificate of Analysis (COA) must be provided prior to dispatch.</p>
+                <p>2. Products must have at least 24 months of expiration date remaining upon arrival.</p>
+                <p>3. Special Note: 영세율 구매확인서 발급 대상, 영문 MSDS 및 INCI 필수 요청건</p>
+              </div>
+
+              <div class="pt-6 border-t border-slate-200 flex justify-between items-end">
+                <div class="text-[10px] text-slate-400">
+                  Document Reference: SEC-PO-ADL-2026-US001-VERIFIED<br>
+                  Electronically Authorized and Legally Binding Procurement Order
+                </div>
+                <div class="text-center space-y-1">
+                  <div class="text-xs font-bold text-slate-800">Authorized Buyer Signature &amp; Stamp</div>
+                  <div class="w-52 border-b-2 border-slate-800 pb-8 text-center font-serif italic text-sm text-slate-700">
+                    BeautyHaul Inc. Procurement Dept.
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+  </div>
+</body>
+</html>
