@@ -250,6 +250,13 @@ function getFilteredBuyersData() {
     }
     return true;
   }).sort((a, b) => {
+    // Newly added rows float to the top
+    if (a._isNew && !b._isNew) return -1;
+    if (!a._isNew && b._isNew) return 1;
+    if (a._isNew && b._isNew) {
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    }
+
     let valA = a[currentBuyerSortCol] || '';
     let valB = b[currentBuyerSortCol] || '';
     if (currentBuyerSortCol === 'no') {
@@ -340,7 +347,10 @@ function renderBuyerSpreadsheet() {
         </td>
 
         <!-- No -->
-        <td class="py-2 px-2 text-center font-mono text-slate-400 text-xs border-r border-slate-200 select-none">${globalIdx}</td>
+        <td class="py-2 px-2 text-center font-mono text-slate-400 text-xs border-r border-slate-200 select-none whitespace-nowrap">
+          <span>${globalIdx}</span>
+          ${b._isNew ? '<span class="ml-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500 text-white font-mono animate-pulse">NEW</span>' : ''}
+        </td>
 
         <!-- Sheet Badge -->
         <td class="py-2 px-2.5 text-xs whitespace-nowrap border-r border-slate-200">

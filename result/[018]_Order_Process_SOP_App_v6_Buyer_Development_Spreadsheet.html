@@ -30167,6 +30167,13 @@ function getFilteredBuyersData() {
     }
     return true;
   }).sort((a, b) => {
+    // Newly added rows float to the top
+    if (a._isNew && !b._isNew) return -1;
+    if (!a._isNew && b._isNew) return 1;
+    if (a._isNew && b._isNew) {
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    }
+
     let valA = a[currentBuyerSortCol] || '';
     let valB = b[currentBuyerSortCol] || '';
     if (currentBuyerSortCol === 'no') {
@@ -30257,7 +30264,10 @@ function renderBuyerSpreadsheet() {
         </td>
 
         <!-- No -->
-        <td class="py-2 px-2 text-center font-mono text-slate-400 text-xs border-r border-slate-200 select-none">${globalIdx}</td>
+        <td class="py-2 px-2 text-center font-mono text-slate-400 text-xs border-r border-slate-200 select-none whitespace-nowrap">
+          <span>${globalIdx}</span>
+          ${b._isNew ? '<span class="ml-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500 text-white font-mono animate-pulse">NEW</span>' : ''}
+        </td>
 
         <!-- Sheet Badge -->
         <td class="py-2 px-2.5 text-xs whitespace-nowrap border-r border-slate-200">
@@ -30430,12 +30440,35 @@ function makeBuyerCellEditable(tdElement, buyerId, field, inputType = 'text') {
 }
 
 function addNewBuyerRow() {
+  // Clear any active search and filters so the new row is guaranteed to be visible on page 1
+  currentBuyerQuery = '';
+  const searchInput = document.getElementById('buyerSearchInput');
+  if (searchInput) searchInput.value = '';
+
+  if (currentBuyerCountry !== 'ALL') {
+    currentBuyerCountry = 'ALL';
+    const cSel = document.getElementById('buyerCountryFilter');
+    if (cSel) cSel.value = 'ALL';
+  }
+  if (currentBuyerStatus !== 'ALL') {
+    currentBuyerStatus = 'ALL';
+    const sSel = document.getElementById('buyerStatusFilter');
+    if (sSel) sSel.value = 'ALL';
+  }
+  if (currentBuyerSize !== 'ALL') {
+    currentBuyerSize = 'ALL';
+    const zSel = document.getElementById('buyerSizeFilter');
+    if (zSel) zSel.value = 'ALL';
+  }
+
   const nextNum = buyersData.length + 1;
   const newId = `BYR-${String(nextNum).padStart(4, '0')}`;
   const targetSheet = currentBuyerSheet === 'ALL' ? 'Master DB' : currentBuyerSheet;
 
   const newBuyer = {
     id: newId,
+    _isNew: true,
+    createdAt: Date.now(),
     sheet: targetSheet,
     company: '신규 바이어사',
     countryEng: '',
@@ -30443,7 +30476,7 @@ function addNewBuyerRow() {
     pic: '바이어 담당자',
     email: '',
     website: '',
-    info: '신규 바이어 발굴 등록',
+    info: '신규 발굴 바이어 (더블클릭하여 정보를 입력하세요)',
     emailStatus: 'Pending',
     status: 'Potential',
     bizProfile: 'Wholesaler/Retailer',
@@ -30461,12 +30494,19 @@ function addNewBuyerRow() {
   buyerCurrentPage = 1;
   renderBuyerSpreadsheet();
 
-  const firstRow = document.getElementById(`buyer_row_${newId}`);
-  if (firstRow) {
-    firstRow.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    const compCell = (firstRow.querySelectorAll ? firstRow.querySelectorAll('td')[4] : null);
-    if (compCell) makeBuyerCellEditable(compCell, newId, 'company');
-  }
+  // Scroll to new row and activate inline edit on company name cell
+  setTimeout(() => {
+    const firstRow = document.getElementById(`buyer_row_${newId}`);
+    if (firstRow) {
+      firstRow.classList.add('bg-emerald-100/70', 'ring-2', 'ring-emerald-500');
+      firstRow.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+      const compCell = (firstRow.querySelectorAll ? firstRow.querySelectorAll('td')[4] : null);
+      if (compCell) makeBuyerCellEditable(compCell, newId, 'company');
+      setTimeout(() => {
+        firstRow.classList.remove('bg-emerald-100/70', 'ring-2', 'ring-emerald-500');
+      }, 3000);
+    }
+  }, 80);
 }
 
 function deleteBuyer(id) {
