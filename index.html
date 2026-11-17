@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adeline Global Trade - 해외영업 Order Process SOP & 브랜드사 관리 시스템</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+    // 브라우저 캐시 강제 무효화 및 구버전 스토리지 즉시 파기
+    try {
+      localStorage.removeItem('adeline_pipeline_master_brands');
+      localStorage.removeItem('adeline_pipeline_master_brands_v2');
+      localStorage.removeItem('adeline_pipeline_master_brands_v3');
+    } catch(e){}
+  </script>
+  <title>Adeline Global Trade - 해외영업 Order Process SOP & 브랜드사 관리 시스템 (v7.0 Clean)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -168,7 +179,7 @@
         <button onclick="switchTab('brands')" id="tab-brands-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 shrink-0">
           <i data-lucide="building-2" class="w-4 h-4"></i>
           <span>2. 브랜드사 관리</span>
-          <span id="badge-brand-count" class="px-1.5 py-0.2 bg-indigo-500/30 text-indigo-300 text-[10px] rounded-full font-bold">43</span>
+          <span id="badge-brand-count" class="px-1.5 py-0.2 bg-indigo-500/30 text-indigo-300 text-[10px] rounded-full font-bold">13</span>
         </button>
         <button onclick="switchTab('buyers')" id="tab-buyers-btn" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 shrink-0">
           <i data-lucide="users-round" class="w-4 h-4 text-emerald-400"></i>
@@ -306,12 +317,24 @@
                 <span>브랜드 & 파트너사 파이프라인 (Brand & Partner Pipeline 2026)</span>
               </h2>
             </div>
-            <p class="text-xs text-slate-500 mt-1">
-              'Brand & Partner Pipeline 2026.xlsx' 원본 데이터 연동 — 국가별 시트 탭 전환, 진행 현황(Status), 인허가(CPNP/SCPN), 컨택 POC, 독점 체결 국가 및 공식 링크 스프레드시트 통합 관리
+            <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+              <span>'Brand & Partner Pipeline 2026.xlsx' 원본 연동 스프레드시트</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                ✅ v7.0 엑셀 6개 컬럼 삭제 완료 (10대 핵심 컬럼 전용)
+              </span>
+              <span id="badgeExcelHiddenStatus" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                🔒 엑셀 숨김 시트 5개(30건) 제외 모드 (15건 표시)
+              </span>
             </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
+            <!-- Toggle Excel Hidden Data Button -->
+            <button type="button" id="btnToggleExcelHidden" onclick="toggleExcelHidden()" class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition cursor-pointer" title="엑셀 파일에서 숨겨진 시트 5개 표시/비표시 전환">
+              <i data-lucide="eye-off" id="iconExcelHidden" class="w-4 h-4 text-slate-500"></i>
+              <span id="labelExcelHidden">엑셀 숨김: 비표시 (Sheet1 15건)</span>
+            </button>
+
             <!-- View Mode Switcher -->
             <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
               <button type="button" id="btnViewSpreadsheet" onclick="setBrandViewMode('spreadsheet')" class="px-3 py-1.5 rounded-lg bg-white shadow-2xs text-indigo-600 flex items-center space-x-1.5 transition">
@@ -335,44 +358,6 @@
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               <span>신규 브랜드사 등록</span>
             </button>
-          </div>
-        </div>
-
-        <!-- Excel Sheet-Style Country Navigation Tabs -->
-        <div class="flex items-center justify-between border-b border-slate-200 overflow-x-auto custom-scrollbar pt-1">
-          <div class="flex space-x-1 shrink-0" id="pipelineCountryTabs">
-            <button type="button" onclick="filterPipelineByCountry('ALL')" class="pipeline-tab active px-3.5 py-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-1.5 transition">
-              <span>🌐 전체 통합 (All)</span>
-              <span id="tabCount-ALL" class="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-700">43</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('Southern Africa')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇿🇦 남아프리카공화국 (ASCO)</span>
-              <span id="tabCount-SA" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">13</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('kindlife')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇮🇳 인도 / GCC (kindlife)</span>
-              <span id="tabCount-KL" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">21</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('China')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇨🇳 중국 (China)</span>
-              <span id="tabCount-CN" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">1</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('Italy')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇮🇹 이탈리아 (Italy)</span>
-              <span id="tabCount-IT" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">3</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('Japan')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇯🇵 일본 (Japan)</span>
-              <span id="tabCount-JP" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">3</span>
-            </button>
-            <button type="button" onclick="filterPipelineByCountry('Finland')" class="pipeline-tab px-3.5 py-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-1.5 transition">
-              <span>🇫🇮 핀란드 (Finland)</span>
-              <span id="tabCount-FI" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">2</span>
-            </button>
-          </div>
-
-          <div class="text-[11px] text-slate-400 font-mono shrink-0 pl-2">
-            <span id="pipelineFilteredCount">43</span>개 브랜드 표시 중
           </div>
         </div>
 
@@ -408,33 +393,43 @@
 
           <!-- Quick Stats Chips -->
           <div class="flex items-center space-x-2 text-[11px] font-semibold shrink-0">
-            <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700">전체 <strong id="statTotalBrands">43</strong>개</span>
-            <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700">완료 <strong id="statCompletedBrands">12</strong>개</span>
-            <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700">협의중 <strong id="statProgressBrands">31</strong>개</span>
+            <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700">전체 <strong id="statTotalBrands">15</strong>개 (<span id="pipelineFilteredCount">15</span>개 표시)</span>
+            <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700">완료 <strong id="statCompletedBrands">3</strong>개</span>
+            <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700">협의중 <strong id="statProgressBrands">12</strong>개</span>
           </div>
         </div>
 
         <!-- 1. SPREADSHEET TABLE VIEW (Default) -->
         <div id="pipelineSpreadsheetView" class="overflow-x-auto custom-scrollbar border border-slate-200 rounded-xl shadow-2xs max-h-[650px]">
-          <table class="w-full text-left text-xs border-collapse bg-white">
+          <table class="w-full min-w-[1520px] text-left text-xs border-collapse bg-white table-fixed">
+            <colgroup>
+              <col class="w-[45px]">
+              <col class="w-[75px]">
+              <col class="w-[85px]">
+              <col class="w-[150px]">
+              <col class="w-[250px]">
+              <col class="w-[110px]">
+              <col class="w-[80px]">
+              <col class="w-[230px]">
+              <col class="w-[95px]">
+              <col class="w-[100px]">
+              <col class="w-[110px]">
+              <col class="w-[220px]">
+            </colgroup>
             <thead class="bg-slate-100 text-slate-700 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
               <tr class="divide-x divide-slate-200">
-                <th class="py-2.5 px-3 text-center w-12 bg-slate-100">No.</th>
-                <th class="py-2.5 px-3 w-32 cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('country')">국가 / 시트 ↕</th>
-                <th class="py-2.5 px-3 w-24 cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('category')">Catogory ↕</th>
-                <th class="py-2.5 px-3 w-32 cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('brandKor')">Brand (KOR) ↕</th>
-                <th class="py-2.5 px-3 w-36 cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('brandEng')">Brand (ENG) ↕</th>
-                <th class="py-2.5 px-3 min-w-[200px] bg-slate-100">Status (진행 현황)</th>
-                <th class="py-2.5 px-3 w-20 text-center bg-slate-100">공급방식</th>
-                <th class="py-2.5 px-3 w-20 text-center bg-slate-100">브랜드 URL</th>
-                <th class="py-2.5 px-3 w-20 text-center bg-slate-100">올리브영</th>
-                <th class="py-2.5 px-3 w-20 text-center bg-slate-100">Insta</th>
-                <th class="py-2.5 px-3 w-24 text-center bg-slate-100">구글드라이브</th>
-                <th class="py-2.5 px-3 w-36 bg-slate-100">PIC / 담당자</th>
-                <th class="py-2.5 px-3 min-w-[180px] bg-slate-100">메일 (POC)</th>
-                <th class="py-2.5 px-3 w-24 bg-slate-100">제안날짜</th>
-                <th class="py-2.5 px-3 min-w-[220px] bg-slate-100">독점 체결 국가 / 제한 채널</th>
-                <th class="py-2.5 px-2.5 w-16 text-center bg-slate-100">관리</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">No.</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">Business</th>
+                <th class="py-2.5 px-2 text-center cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('category')">Catogory ↕</th>
+                <th class="py-2.5 px-3 cursor-pointer hover:bg-slate-200 transition bg-slate-100" onclick="sortPipeline('brandFullName')">회사/브랜드명(ENG) ↕</th>
+                <th class="py-2.5 px-3 bg-slate-100">Status(현황)</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">RA(해외인허가)</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">Supply</th>
+                <th class="py-2.5 px-3 bg-slate-100">POC</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">메일링</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">구글 드라이브</th>
+                <th class="py-2.5 px-2 text-center bg-slate-100">RP/마케팅 자료</th>
+                <th class="py-2.5 px-3 bg-slate-100">독점 체결 국가</th>
               </tr>
             </thead>
             <tbody id="pipelineSpreadsheetBody" class="divide-y divide-slate-200 text-slate-800">
@@ -5285,276 +5280,333 @@
     const PIPELINE_MASTER_DATA = [
   {
     "id": "PL-SA-01",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 1,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "토리든 Torriden",
     "brandKor": "토리든",
     "brandEng": "Torriden",
     "status": "[공급률]\n실투 47.5\n타이거 45.5% \nLUCA 44.5%\n\nMOA\nover 4,000 / lead time 2 weeks",
+    "ra": "",
     "supply": "유통",
-    "brandUrl": "https://torriden.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002778",
-    "instaUrl": "https://www.instagram.com/torriden_official/",
-    "pic": "sales2@torriden.com",
-    "email": "sales2@torriden.com, info@torriden.com",
-    "proposalDate": "2026-08-10",
+    "poc": "sales2@torriden.com\ninfo@torriden.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "토리든[Torriden]",
     "gdriveUrl": "https://drive.google.com/drive/folders/19FCzi5URJF6rp4l-owtsJyOfBnhiGBnW?usp=drive_link",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-02",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 2,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "아누아 Anua",
     "brandKor": "아누아",
     "brandEng": "Anua",
     "status": "no MOA",
+    "ra": "CPNP, SCPN, MoCRA",
     "supply": "유통\nKindlife",
-    "brandUrl": "https://anua.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A003328",
-    "instaUrl": "https://www.instagram.com/anua.skincare/",
-    "pic": "business@anua.kr",
-    "email": "business@anua.kr, global_sales@thefounders.kr",
-    "proposalDate": "2026-08-10",
+    "poc": "business@anua.kr\nglobal_sales@thefounders.kr",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "Anua [RLOHA 브랜드 견적 공유]",
     "gdriveUrl": "https://drive.google.com/drive/folders/1RVBzkvb44pEVBj_LEd8hJJ51STDMz4IF?usp=sharing",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "1) 일본\n2) 태국 \n3) 인도네시아\n4) 미국 아마존/틱톡샵\n5) 영국(추가)",
-    "cpnp": "CPNP, SCPN, MoCRA"
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-03",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 3,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "마녀공장 Ma:nyo",
     "brandKor": "마녀공장",
     "brandEng": "Ma:nyo",
-    "status": "진행중",
+    "status": "",
+    "ra": "CPNP",
     "supply": "다이렉트",
-    "brandUrl": "https://manyo.co.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A000969",
-    "instaUrl": "https://www.instagram.com/manyo_official/",
-    "pic": "manyofactory_cs@manyo.co.kr",
-    "email": "manyofactory_cs@manyo.co.kr, hyunjung.lee@manyo.co.kr",
-    "proposalDate": "2026-08-10",
+    "poc": "manyofactory_cs@manyo.co.kr\n이현정 담당자 hyunjung.lee@manyo.co.kr",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "마녀공장[manyo]",
     "gdriveUrl": "https://drive.google.com/drive/folders/1oBPNz1f_LcGPfkUOxOaxNnXEuJW_XacL?usp=sharing",
-    "rpMarketingUrl": "https://drive.google.com/drive/folders/1yNRs9GVziOlRMJvVsBtfan7i7JwoEYUk?usp=sharing",
+    "rpName": "마녀공장ma:nyo",
+    "rpUrl": "https://drive.google.com/drive/folders/1yNRs9GVziOlRMJvVsBtfan7i7JwoEYUk?usp=sharing",
     "exclusiveCountries": "",
-    "cpnp": "CPNP"
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-04",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 4,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "리쥬란 Rejuran",
     "brandKor": "리쥬란",
     "brandEng": "Rejuran",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "유통",
-    "brandUrl": "https://rejuran.co.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002396",
-    "instaUrl": "https://www.instagram.com/rejuran_cosmetics/",
-    "pic": "prgh@pharmaresearch.co.kr",
-    "email": "prgh@pharmaresearch.co.kr",
-    "proposalDate": "2026-08-10",
+    "poc": "prgh@pharmaresearch.co.kr",
+    "mailingDate": "",
+    "gdriveName": "리쥬란[REJURAN]-브랜드견적공유",
     "gdriveUrl": "https://drive.google.com/drive/folders/1pLGa9z6mm7vwDg320uo4zXrcd5fMUjqh?usp=sharing",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-05",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 5,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "비플레인 beplain",
     "brandKor": "비플레인",
     "brandEng": "beplain",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "유통",
-    "brandUrl": "https://beplain.co.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002621",
-    "instaUrl": "https://www.instagram.com/beplain_official/",
-    "pic": "contact@momentsco.com",
-    "email": "contact@momentsco.com, sales@momentsco.com",
-    "proposalDate": "2026-08-10",
+    "poc": "contact@momentsco.com\nsales@momentsco.com",
+    "mailingDate": "",
+    "gdriveName": "",
     "gdriveUrl": "",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-06",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 6,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "메디필 MEDIPEEL",
     "brandKor": "메디필",
     "brandEng": "MEDIPEEL",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "다이렉트",
-    "brandUrl": "https://medipeel.co.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A001282",
-    "instaUrl": "https://www.instagram.com/medipeel.official/",
-    "pic": "skinidea@medipeel.com",
-    "email": "skinidea@medipeel.com, export@medipeel.com",
-    "proposalDate": "2026-08-11",
+    "poc": "skinidea@medipeel.com\nexport@medipeel.com",
+    "mailingDate": "2026-08-11",
+    "gdriveName": "메디필[Medipeel]",
     "gdriveUrl": "https://drive.google.com/drive/folders/1rNFy6Zg6xozyyD2QwOMvbgqSJtwtWBrL",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-07",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 7,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "빌리프 belif",
     "brandKor": "빌리프",
     "brandEng": "belif",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "",
-    "brandUrl": "https://belifkorea.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A001235",
-    "instaUrl": "https://www.instagram.com/belif.official/",
-    "pic": "lgbeautymall@lghnh.com",
-    "email": "lgbeautymall@lghnh.com",
-    "proposalDate": "2026-08-10",
+    "poc": "lgbeautymall@lghnh.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "",
     "gdriveUrl": "",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-08",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 8,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "넘버즈인 Numbuzin",
     "brandKor": "넘버즈인",
     "brandEng": "Numbuzin",
-    "status": "넘버즈인 퓌 - 실리콘투 통하여 진행하기로 했음\n인도 kindlife / 폴란드 Sonia ",
-    "supply": "유통 ",
-    "brandUrl": "https://numbuzin.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002951",
-    "instaUrl": "https://www.instagram.com/numbuzin_official/",
-    "pic": "안나현     Blaire  Ahn <a.blaire@benow.co.kr>",
-    "email": "a.blaire@benow.co.kr, opr_g11@benow.co.kr, global_opr5@benow.co.kr",
-    "proposalDate": "2026-08-10",
+    "status": "넘버즈인 퓌 - 실리콘투 통하여 진행하기로 했음\n인도 kindlife / 폴란드 Sonia",
+    "ra": "",
+    "supply": "유통",
+    "poc": "안나현     Blaire  Ahn <a.blaire@benow.co.kr>\nB2B해외영업1파트 <opr_g11@benow.co.kr>,\nB2B해외영업2파트 <global_opr5@benow.co.kr>",
+    "mailingDate": "",
+    "gdriveName": "[넘버즈인] Numbuzin",
     "gdriveUrl": "https://drive.google.com/drive/folders/17PkxhnuPjXKRCaISDbOvtGDkMoGlSA1o?usp=drive_link",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "-* 사전 논의되지 않은 국가 및 채널 유통으로 인한 브랜드 피해(총판 국가 유통, 영업선 방해 등) 발생 시 법적인 책임을 물을 수 있습니다.\n\n  - 유통 제한 국가 : 한국, 일본, 중국, 홍콩(퓌), 대만(퓌), 태국(퓌), 베트남, 캄보디아, 말레이시아, 인도네시아, 인도, 멕시코\n  - 유통 제한 채널 : 아마존 미국·독일·이탈리아·스페인·프랑스·영국·UAE·호주·멕시코\n\n* 시장가격을 저해하는 유통 행위가 확인될 경우 거래가 종료될 수 있습니다.",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-09",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 9,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "VT",
     "brandKor": "VT",
     "brandEng": "VT",
-    "status": "진행중",
+    "status": "",
+    "ra": "CPNP",
     "supply": "유통",
-    "brandUrl": "https://vt-cosmetics.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A001815",
-    "instaUrl": "https://www.instagram.com/vtcosmetics_official/",
-    "pic": "sales@vt-cosmetics.com",
-    "email": "sales@vt-cosmetics.com, cs@vt-cosmetics.com, ka5614@vt-cosmetics.com, ehdwkd82@aromatica.co.kr, ygcho@vt-cosmetics.com, neobizbox_gvt_c1000_d2910@vt-cosmetics.com, shkim4@vt-cosmetics.com",
-    "proposalDate": "2026-08-10",
+    "poc": "sales@vt-cosmetics.com\ncs@vt-cosmetics.com\nka5614@vt-cosmetics.com\ncs@vt-cosmetics.com\n\n임동혁 Tony <ehdwkd82@aromatica.co.kr>\n조윤경      \n  ygcho@vt-cosmetics.com\n브이티코스메틱 해외영업1팀 미주유럽파트       \n neobizbox_gvt_c1000_d2910@vt-cosmetics.com\n김경아        \nka5614@vt-cosmetics.com\nSohee Kim        \nshkim4@vt-cosmetics.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "VT-브랜드견적공유",
     "gdriveUrl": "https://drive.google.com/drive/folders/1p-npftQ5ZKt7Rr2JX3Mf0OuiiNbC4hY4?usp=sharing",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": "CPNP"
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-10",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 10,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "아비브 Abib",
     "brandKor": "아비브",
     "brandEng": "Abib",
     "status": "홍콩 더블도어 진입 같이** \n중동/유럽/이스라엘 영업 금지, 당분간 국가 추가도 어려움",
+    "ra": "CPNP, SCPN, MoCRA",
     "supply": "다이렉트",
-    "brandUrl": "https://abib.co.kr/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A002242",
-    "instaUrl": "https://www.instagram.com/abib.official/",
-    "pic": "abib.global@gmail.com",
-    "email": "abib.global@gmail.com, abib@fourco.co.kr, jug3515@fourco.co.kr, shjung@fourco.co.kr, sionkong@fourco.co.kr",
-    "proposalDate": "2026-08-10",
+    "poc": "abib.global@gmail.com\nabib@fourco.co.kr\n해외사업본부_중국사업팀 정의건\nMobile. +82 10-7287-6999\nE-mail: jug3515@fourco.co.kr\n정상현(2201050)/차장/중국사업팀\" <shjung@fourco.co.kr>,\n공시온(2601030)/주임/중국사업팀_영업2파트\" <sionkong@fourco.co.kr>\n        정의건(2501032)\" <jug3515@fourco.co.kr>",
+    "mailingDate": "",
+    "gdriveName": "Anua [RLOHA 브랜드 견적 공유]",
     "gdriveUrl": "https://drive.google.com/drive/folders/1wzI3ReXE-dB1Se165OXSEaJJqRRItqpr?usp=drive_link",
-    "rpMarketingUrl": "https://drive.google.com/file/d/11UYRzWt0qo91RR67BfYelqMkokzclDLT/view?usp=drive_link",
+    "rpName": "Abib 브랜드 소개서(HK최신)_KR.pdf",
+    "rpUrl": "https://drive.google.com/file/d/11UYRzWt0qo91RR67BfYelqMkokzclDLT/view?usp=drive_link",
     "exclusiveCountries": "싱가폴, 중국(홍콩, 대만 포함 )일본\n아마존 유럽금지 국가: 독일, 스페인, 영국, 프랑스, 이탈리아\n절대금지: 중국, 홍콩, 대만, 일본\n\n* 파나마: 제안 가능\n* 인도: 독점 계약 진행 중",
-    "cpnp": "CPNP, SCPN, MoCRA"
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-11",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 11,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "닥터리쥬올 Dr Reju-all",
     "brandKor": "닥터리쥬올",
     "brandEng": "Dr Reju-all",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "",
-    "brandUrl": "https://neosimplix.com/",
-    "oliveyoungUrl": "",
-    "instaUrl": "https://www.instagram.com/dr.rejuall/",
-    "pic": "global_sales@neosimplix.com",
-    "email": "global_sales@neosimplix.com",
-    "proposalDate": "2026-08-10",
+    "poc": "global_sales@neosimplix.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "",
     "gdriveUrl": "",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-12",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 12,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "메디힐 Mediheal",
     "brandKor": "메디힐",
     "brandEng": "Mediheal",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "",
-    "brandUrl": "https://medihealshop.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A000109",
-    "instaUrl": "https://www.instagram.com/mediheal_official/",
-    "pic": "이정운 julee@medihealcos.com",
-    "email": "julee@medihealcos.com",
-    "proposalDate": "2026-08-10",
+    "poc": "이정운 julee@medihealcos.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "Mediheal [RLOHA 브랜드 견적 공유]",
     "gdriveUrl": "https://drive.google.com/drive/folders/1WWYjLmGhWrF-2xopZc0bxGiEMkgJpEMF?usp=sharing",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-SA-13",
-    "country": "Southern Africa",
-    "countryName": "남아공 (ASCO)",
-    "countryFlag": "🇿🇦",
+    "no": 13,
+    "business": "브랜드사",
     "category": "Skincare",
+    "brandFullName": "닥터비타 Dr Vita",
     "brandKor": "닥터비타",
     "brandEng": "Dr Vita",
-    "status": "진행중",
+    "status": "",
+    "ra": "",
     "supply": "",
-    "brandUrl": "https://daycellmall.com/",
-    "oliveyoungUrl": "https://www.oliveyoung.co.kr/store/display/getBrandShopDetail.do?onlBrndCd=A000787",
-    "instaUrl": "https://www.instagram.com/daycell_official/",
-    "pic": "김경원 대표 bio-tamin@naver.com",
-    "email": "bio-tamin@naver.com",
-    "proposalDate": "2026-08-10",
+    "poc": "김경원 대표 bio-tamin@naver.com",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "",
     "gdriveUrl": "",
-    "rpMarketingUrl": "",
+    "rpName": "",
+    "rpUrl": "",
     "exclusiveCountries": "",
-    "cpnp": ""
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
+  },
+  {
+    "id": "PL-SA-14",
+    "no": 14,
+    "business": "브랜드사",
+    "category": "Skincare",
+    "brandFullName": "달바 d'Alba",
+    "brandKor": "달바",
+    "brandEng": "d'Alba",
+    "status": "",
+    "ra": "",
+    "supply": "",
+    "poc": "김선호 <sophia.kim@dalba.com>,\n문지원 <ari.moon@dalba.com>",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "",
+    "gdriveUrl": "",
+    "rpName": "",
+    "rpUrl": "",
+    "exclusiveCountries": "",
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
+  },
+  {
+    "id": "PL-SA-15",
+    "no": 15,
+    "business": "브랜드사",
+    "category": "Skincare",
+    "brandFullName": "썸바이미 SOME BY MI",
+    "brandKor": "썸바이미",
+    "brandEng": "SOME BY MI",
+    "status": "",
+    "ra": "",
+    "supply": "",
+    "poc": "이유리 <yrlee@somebymi.com>",
+    "mailingDate": "2026-08-10",
+    "gdriveName": "",
+    "gdriveUrl": "",
+    "rpName": "",
+    "rpUrl": "",
+    "exclusiveCountries": "",
+    "country": "Southern Africa",
+    "countryName": "남아공 (ASCO)",
+    "countryFlag": "🇿🇦"
   },
   {
     "id": "PL-CN-01",
@@ -6198,9 +6250,21 @@ let currentSortCol = 'no';
 let currentSortDir = 'asc';
 let currentBrandViewMode = 'spreadsheet';
 
+// 엑셀 'Brand & Partner Pipeline 2026.xlsx' 숨김 속성 동기화 상태 플래그
+// 기본값: false (엑셀의 숨김 시트 5개는 보이지 않도록 함, 불필요 6개 열은 영구 삭제 완료)
+let showExcelHidden = false;
+
+const EXCEL_VISIBLE_SHEETS = ['Southern Africa'];
+const EXCEL_HIDDEN_SHEETS = ['kindlife', 'China', 'Italy', 'Japan', 'Finland'];
+
 function initPipelineData() {
   try {
-    const saved = localStorage.getItem('adeline_pipeline_master_brands');
+    // 구버전 로컬스토리지 캐시 강제 무효화 및 완전 삭제
+    localStorage.removeItem('adeline_pipeline_master_brands');
+    localStorage.removeItem('adeline_pipeline_master_brands_v2');
+    localStorage.removeItem('adeline_pipeline_master_brands_v3');
+
+    const saved = localStorage.getItem('adeline_pipeline_master_brands_v4');
     if (saved) {
       pipelineBrands = JSON.parse(saved);
     }
@@ -6208,46 +6272,178 @@ function initPipelineData() {
     console.warn('Failed to load saved pipeline brands:', e);
   }
 
-  if (!pipelineBrands || pipelineBrands.length === 0) {
+  // 데이터가 없거나 15개 최신 브랜드와 불일치할 경우 PIPELINE_MASTER_DATA로부터 강제 초기화
+  if (!pipelineBrands || pipelineBrands.length === 0 || !pipelineBrands.some(b => b.brandEng === "d'Alba")) {
     if (typeof PIPELINE_MASTER_DATA !== 'undefined' && Array.isArray(PIPELINE_MASTER_DATA)) {
       pipelineBrands = JSON.parse(JSON.stringify(PIPELINE_MASTER_DATA));
-      savePipelineData();
     }
   }
 
-  // Also ensure standard 'brands' array has items for order dropdowns
+  // 엑셀 시트 숨김 상태(sheetState, isSheetHidden) 메타데이터 보장 및 삭제 컬럼 필드 영구 제거
+  if (pipelineBrands && pipelineBrands.length > 0) {
+    pipelineBrands.forEach((b, idx) => {
+      b.no = idx + 1;
+      const isVisible = EXCEL_VISIBLE_SHEETS.includes(b.country);
+      b.isSheetHidden = !isVisible;
+      b.sheetState = isVisible ? 'visible' : 'hidden';
+
+      // 6개 삭제 열(국가/시트, 공급방식, 브랜드 URL, 올리브영, Insta, PIC) 완벽 제거 보장
+      delete b.supply;
+      delete b.brandUrl;
+      delete b.oliveyoungUrl;
+      delete b.instaUrl;
+      delete b.pic;
+      delete b.rpMarketingUrl;
+    });
+    savePipelineData();
+  }
+
+  // UI 상태 갱신
+  updateExcelHiddenUI();
+
+  // 브랜드 동기화
   syncBrandsWithPipeline();
 }
 
 function savePipelineData() {
   try {
-    localStorage.setItem('adeline_pipeline_master_brands', JSON.stringify(pipelineBrands));
+    localStorage.setItem('adeline_pipeline_master_brands_v4', JSON.stringify(pipelineBrands));
   } catch (e) {
     console.error('Failed to save pipeline brands:', e);
   }
 }
 
+// 엑셀 숨김 항목 토글 함수
+function toggleExcelHidden() {
+  showExcelHidden = !showExcelHidden;
+  
+  // 숨김 상태로 돌아갔는데 현재 선택된 국가가 숨겨진 국가라면 ALL로 리셋
+  if (!showExcelHidden && EXCEL_HIDDEN_SHEETS.includes(currentCountryFilter)) {
+    currentCountryFilter = 'ALL';
+    document.querySelectorAll('.pipeline-tab').forEach(tab => {
+      tab.classList.remove('active', 'border-indigo-600', 'text-indigo-600');
+      tab.classList.add('border-transparent', 'text-slate-500');
+    });
+    const allTab = document.querySelector(".pipeline-tab[onclick*=\"'ALL'\"]");
+    if (allTab) {
+      allTab.classList.add('active', 'border-indigo-600', 'text-indigo-600');
+      allTab.classList.remove('border-transparent', 'text-slate-500');
+    }
+  }
+
+  updateExcelHiddenUI();
+
+  if (currentBrandViewMode === 'spreadsheet') {
+    renderPipelineSpreadsheet();
+  } else {
+    renderPipelineCards();
+  }
+
+  syncBrandsWithPipeline();
+}
+
+// 엑셀 숨김 속성에 따른 UI 갱신 (버튼, 뱃지, 탭 숨김/표시, 컬럼 숨김/표시)
+function updateExcelHiddenUI() {
+  const btn = document.getElementById('btnToggleExcelHidden');
+  const icon = document.getElementById('iconExcelHidden');
+  const label = document.getElementById('labelExcelHidden');
+  const badge = document.getElementById('badgeExcelHiddenStatus');
+
+  if (btn && label) {
+    if (showExcelHidden) {
+      btn.className = 'inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-indigo-300 bg-indigo-50 text-indigo-700 shadow-2xs transition cursor-pointer hover:bg-indigo-100';
+      label.innerText = '엑셀 숨김: 표시 중 (전체 43건)';
+      if (icon) icon.setAttribute('data-lucide', 'eye');
+    } else {
+      btn.className = 'inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-700 shadow-2xs transition cursor-pointer hover:bg-slate-50';
+      label.innerText = '엑셀 숨김: 비표시 (Sheet1 15건)';
+      if (icon) icon.setAttribute('data-lucide', 'eye-off');
+    }
+  }
+
+  if (badge) {
+    if (showExcelHidden) {
+      badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200';
+      badge.innerHTML = '📂 엑셀 숨김 시트(5개) 포함 표시 모드 (전체 43건)';
+    } else {
+      badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200';
+      badge.innerHTML = '🔒 엑셀 숨김 시트 5개 제외 모드 (15건 표시)';
+    }
+  }
+
+  // 숨겨진 시트 탭 표시 / 숨김
+  document.querySelectorAll('.excel-hidden-sheet').forEach(el => {
+    if (showExcelHidden) {
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+
+  // 숨겨진 열(열 G: 브랜드 URL) 테이블 헤더 및 셀 표시 / 숨김
+  document.querySelectorAll('.excel-hidden-col').forEach(el => {
+    if (showExcelHidden) {
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+
+  // 통계 및 뱃지 카운트 계산
+  const visibleData = pipelineBrands.filter(b => showExcelHidden || !b.isSheetHidden);
+  const totalCount = visibleData.length;
+  const completedCount = visibleData.filter(b => (b.status || '').includes('완료') || (b.status || '').includes('컨펌') || (b.status || '').includes('입점')).length;
+  const progressCount = totalCount - completedCount;
+
+  const tabCountAll = document.getElementById('tabCount-ALL');
+  if (tabCountAll) tabCountAll.innerText = totalCount;
+
+  const statTotal = document.getElementById('statTotalBrands');
+  if (statTotal) statTotal.innerText = totalCount;
+
+  const statComp = document.getElementById('statCompletedBrands');
+  if (statComp) statComp.innerText = completedCount;
+
+  const statProg = document.getElementById('statProgressBrands');
+  if (statProg) statProg.innerText = progressCount;
+
+  const badgeHeader = document.getElementById('badge-brand-count');
+  if (badgeHeader) badgeHeader.innerText = totalCount;
+
+  const statDashboard = document.getElementById('stat-brands-total');
+  if (statDashboard) statDashboard.innerText = totalCount;
+
+  if (window.lucide) lucide.createIcons();
+}
+
 function syncBrandsWithPipeline() {
   if (typeof brands === 'undefined') window.brands = [];
-  if (pipelineBrands && pipelineBrands.length > 0) {
-    brands = pipelineBrands.map(p => ({
+  
+  // 엑셀 숨김 항목 비표시 모드일 경우 visible 시트(Southern Africa) 데이터만 오더/견적 대상 브랜드로 동기화
+  const targetBrands = showExcelHidden 
+    ? pipelineBrands 
+    : pipelineBrands.filter(p => !p.isSheetHidden);
+
+  if (targetBrands && targetBrands.length > 0) {
+    brands = targetBrands.map(p => ({
       id: p.id,
       brandName: p.brandKor || p.brandEng,
       brandNameEng: p.brandEng,
       companyName: `${p.brandKor || p.brandEng} 주식회사`,
-      manager: p.pic || '담당자',
+      manager: p.pic || '해외영업팀',
       email: p.email ? p.email.split(',')[0].trim() : 'contact@adeline.com',
       phone: '02-1234-5678',
-      businessType: `${p.category} 도소매 및 무역`,
-      bankName: '신한은행',
-      accountNumber: '140-014-561058',
-      accountHolder: '아델라인그룹(주)',
-      status: p.status && p.status.includes('완료') ? '계약완료' : '검토중',
+      businessType: `${p.category} 도소매 및 수출`,
+      bankName: '기업은행',
+      accountNumber: '241-098231-01-018',
+      accountHolder: '아델라인글로벌',
+      status: p.status && (p.status.includes('완료') || p.status.includes('체결')) ? '계약완료' : '진행중',
       supply: p.supply || '유통',
       country: p.countryName || p.country
     }));
   }
 }
+
 
 function setBrandViewMode(mode) {
   currentBrandViewMode = mode;
@@ -6358,6 +6554,11 @@ function getFilteredPipelineData() {
   }
 
   return pipelineBrands.filter(b => {
+    // 엑셀 숨김 시트 필터: showExcelHidden이 false이면 숨겨진 시트는 완전히 보이지 않음
+    if (!showExcelHidden && b.isSheetHidden) {
+      return false;
+    }
+
     // Country filter
     if (currentCountryFilter !== 'ALL' && b.country !== currentCountryFilter) {
       return false;
@@ -6377,10 +6578,9 @@ function getFilteredPipelineData() {
       const kor = (b.brandKor || '').toLowerCase();
       const eng = (b.brandEng || '').toLowerCase();
       const cat = (b.category || '').toLowerCase();
-      const pic = (b.pic || '').toLowerCase();
       const em = (b.email || '').toLowerCase();
       const excl = (b.exclusiveCountries || '').toLowerCase();
-      if (!kor.includes(q) && !eng.includes(q) && !cat.includes(q) && !pic.includes(q) && !em.includes(q) && !excl.includes(q)) {
+      if (!kor.includes(q) && !eng.includes(q) && !cat.includes(q) && !em.includes(q) && !excl.includes(q)) {
         return false;
       }
     }
@@ -6404,35 +6604,16 @@ function renderPipelineSpreadsheet() {
   if (!tbody) return;
 
   const filtered = getFilteredPipelineData();
-  const countEl = document.getElementById('pipelineFilterCount');
-  const totalEl = document.getElementById('pipelineTotalCount');
+  const countEl = document.getElementById('pipelineFilteredCount');
   if (countEl) countEl.innerText = filtered.length;
-  if (totalEl) totalEl.innerText = pipelineBrands.length;
 
-  // Update country tab badges
-  const countryCounts = {
-    ALL: pipelineBrands.length,
-    'Southern Africa': 0,
-    kindlife: 0,
-    China: 0,
-    Italy: 0,
-    Japan: 0,
-    Finland: 0
-  };
-  pipelineBrands.forEach(b => {
-    if (countryCounts[b.country] !== undefined) {
-      countryCounts[b.country]++;
-    }
-  });
-  Object.keys(countryCounts).forEach(k => {
-    const badge = document.getElementById(`badgeCount_${k}`);
-    if (badge) badge.innerText = countryCounts[k];
-  });
+  // 숨김 상태에 따른 UI 뱃지/탭 표시 제어
+  updateExcelHiddenUI();
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="15" class="py-12 text-center text-slate-400">
+        <td colspan="12" class="py-12 text-center text-slate-400">
           <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
           <p class="text-xs">조건에 해당하는 브랜드 파이프라인 데이터가 없습니다.</p>
         </td>
@@ -6456,114 +6637,79 @@ function renderPipelineSpreadsheet() {
 
     // Category badge color
     let catBg = 'bg-purple-50 text-purple-700 border-purple-200';
-    if (b.category === '스킨케어') catBg = 'bg-sky-50 text-sky-700 border-sky-200';
-    else if (b.category === '메이크업') catBg = 'bg-pink-50 text-pink-700 border-pink-200';
-    else if (b.category === '헤어케어') catBg = 'bg-amber-50 text-amber-700 border-amber-200';
+    if (b.category === '스킨케어' || b.category === 'Skincare') catBg = 'bg-sky-50 text-sky-700 border-sky-200';
+    else if (b.category === '메이크업' || b.category === 'Make up') catBg = 'bg-pink-50 text-pink-700 border-pink-200';
 
     return `
-      <tr class="hover:bg-indigo-50/40 transition group">
-        <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-xs">${idx + 1}</td>
-        
-        <!-- Country -->
-        <td class="py-2.5 px-3 text-xs whitespace-nowrap">
-          <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">
-            <span class="mr-1">${b.countryFlag || '🌐'}</span>
-            <span>${b.countryName || b.country}</span>
-          </span>
-        </td>
+      <tr class="divide-x divide-slate-100 hover:bg-indigo-50/40 transition group">
+        <!-- 1. No. -->
+        <td class="py-2.5 px-2 text-center font-mono text-slate-400 text-xs">${idx + 1}</td>
 
-        <!-- Category -->
-        <td class="py-2.5 px-3 text-xs whitespace-nowrap">
+        <!-- 2. Business -->
+        <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${b.business || '브랜드사'}</td>
+
+        <!-- 3. Catogory -->
+        <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">
           <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${catBg}">
             ${b.category}
           </span>
         </td>
 
-        <!-- Brand (KOR) -->
-        <td class="py-2.5 px-3 font-black text-slate-900 whitespace-nowrap text-xs">${b.brandKor || '-'}</td>
+        <!-- 4. 회사/브랜드명(ENG) -->
+        <td class="py-2.5 px-3 text-xs font-bold text-slate-900 truncate" title="${b.brandFullName || '-'}">
+          <span class="text-indigo-950 font-black">${b.brandFullName || '-'}</span>
+        </td>
 
-        <!-- Brand (ENG) -->
-        <td class="py-2.5 px-3 font-mono font-bold text-indigo-700 whitespace-nowrap text-xs">${b.brandEng || '-'}</td>
-
-        <!-- Status -->
+        <!-- 5. Status(현황) -->
         <td class="py-2.5 px-3 text-xs">
-          <div class="inline-block p-1.5 rounded-lg border text-[10px] font-semibold leading-relaxed ${statusBg}">
-            ${(b.status || '-').replace(/\n/g, '<br>')}
-          </div>
-        </td>
-
-        <!-- Supply Type -->
-        <td class="py-2.5 px-3 text-center text-xs whitespace-nowrap">
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
-            ${b.supply || '유통'}
-          </span>
-        </td>
-
-        <!-- Brand URL -->
-        <td class="py-2.5 px-3 text-center text-xs">
-          ${b.brandUrl ? `
-            <a href="${b.brandUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex p-1 rounded hover:bg-slate-200 text-indigo-600 transition" title="브랜드 공식몰 바로가기">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-            </a>
+          ${b.status ? `
+            <div class="inline-block p-1.5 rounded-lg border text-[10px] font-semibold leading-relaxed ${statusBg}">
+              ${b.status.replace(/\n/g, '<br>')}
+            </div>
           ` : '<span class="text-slate-300">-</span>'}
         </td>
 
-        <!-- Oliveyoung URL -->
-        <td class="py-2.5 px-3 text-center text-xs">
-          ${b.oliveyoungUrl ? `
-            <a href="${b.oliveyoungUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex p-1 rounded hover:bg-emerald-100 text-emerald-600 transition" title="올리브영 브랜드관 바로가기">
-              <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-            </a>
-          ` : '<span class="text-slate-300">-</span>'}
+        <!-- 6. RA(해외인허가) -->
+        <td class="py-2.5 px-2 text-center text-xs">
+          ${b.ra ? `<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">${b.ra}</span>` : '<span class="text-slate-300">-</span>'}
         </td>
 
-        <!-- Insta URL -->
-        <td class="py-2.5 px-3 text-center text-xs">
-          ${b.instaUrl ? `
-            <a href="${b.instaUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex p-1 rounded hover:bg-pink-100 text-pink-600 transition" title="공식 인스타그램 바로가기">
-              <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
-            </a>
-          ` : '<span class="text-slate-300">-</span>'}
+        <!-- 7. Supply -->
+        <td class="py-2.5 px-2 text-center text-xs font-medium text-slate-700 whitespace-nowrap">
+          ${b.supply ? `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">${b.supply.replace(/\n/g, ' ')}</span>` : '<span class="text-slate-300">-</span>'}
         </td>
 
-        <!-- GDrive URL -->
-        <td class="py-2.5 px-3 text-center text-xs">
+        <!-- 8. POC -->
+        <td class="py-2.5 px-3 text-xs font-mono text-slate-600 text-[11px] leading-relaxed" title="${b.poc || '-'}">
+          ${b.poc ? b.poc.replace(/\n/g, '<br>') : '<span class="text-slate-300">-</span>'}
+        </td>
+
+        <!-- 9. 메일링 -->
+        <td class="py-2.5 px-2 text-center font-mono text-slate-500 whitespace-nowrap text-xs">${b.mailingDate || '-'}</td>
+
+        <!-- 10. 구글 드라이브 -->
+        <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">
           ${b.gdriveUrl ? `
-            <a href="${b.gdriveUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold border border-amber-200 transition" title="구글 드라이브 폴더 열기">
-              <i data-lucide="folder-open" class="w-3 h-3"></i>
-              <span>드라이브</span>
+            <a href="${b.gdriveUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold border border-amber-200 transition" title="${b.gdriveName || '구글 드라이브'}">
+              <i data-lucide="folder" class="w-3.5 h-3.5"></i>
+              <span>열기</span>
             </a>
-          ` : '<span class="text-slate-300">-</span>'}
+          ` : (b.gdriveName ? `<span class="text-[11px] text-slate-600">${b.gdriveName}</span>` : '<span class="text-slate-300">-</span>')}
         </td>
 
-        <!-- PIC / Contact -->
-        <td class="py-2.5 px-3 font-medium text-slate-700 truncate max-w-[140px] text-xs" title="${b.pic}">${b.pic || '-'}</td>
-
-        <!-- Email -->
-        <td class="py-2.5 px-3 font-mono text-[10px] text-slate-600 text-xs">
-          ${b.email ? `
-            <a href="mailto:${b.email.split(',')[0].trim()}" class="hover:text-indigo-600 underline flex items-center space-x-1" title="${b.email}">
-              <i data-lucide="mail" class="w-3 h-3 text-slate-400"></i>
-              <span class="truncate max-w-[150px]">${b.email}</span>
+        <!-- 11. RP/마케팅 자료 -->
+        <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">
+          ${b.rpUrl ? `
+            <a href="${b.rpUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold border border-indigo-200 transition" title="${b.rpName || '마케팅 자료'}">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>자료</span>
             </a>
-          ` : '-'}
+          ` : (b.rpName ? `<span class="text-[11px] text-slate-600">${b.rpName}</span>` : '<span class="text-slate-300">-</span>')}
         </td>
 
-        <!-- Proposal Date -->
-        <td class="py-2.5 px-3 font-mono text-[10px] text-slate-500 whitespace-nowrap text-xs">${b.proposalDate || '-'}</td>
-
-        <!-- Exclusive / Channel Restrictions -->
-        <td class="py-2.5 px-3 text-xs">
-          <div class="line-clamp-2 hover:line-clamp-none transition cursor-default text-[11px] text-slate-600 leading-snug" title="${b.exclusiveCountries}">
-            ${(b.exclusiveCountries || '-').replace(/\n/g, ' / ')}
-          </div>
-        </td>
-
-        <!-- Action Edit -->
-        <td class="py-2.5 px-2.5 text-center text-xs">
-          <button onclick="editPipelineBrand('${b.id}')" class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition" title="상세 수정">
-            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-          </button>
+        <!-- 12. 독점 체결 국가 -->
+        <td class="py-2.5 px-3 text-xs text-slate-600 leading-relaxed text-[11px]">
+          ${b.exclusiveCountries ? b.exclusiveCountries.replace(/\n/g, '<br>') : '<span class="text-slate-300">-</span>'}
         </td>
       </tr>
     `;
@@ -6577,6 +6723,11 @@ function renderPipelineCards() {
   if (!grid) return;
 
   const filtered = getFilteredPipelineData();
+  const countEl = document.getElementById('pipelineFilteredCount');
+  if (countEl) countEl.innerText = filtered.length;
+
+  updateExcelHiddenUI();
+
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="col-span-full py-12 text-center text-slate-400">
@@ -6592,10 +6743,7 @@ function renderPipelineCards() {
     <div class="bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition space-y-3">
       <div class="flex items-start justify-between">
         <div>
-          <div class="flex items-center space-x-1.5">
-            <span class="text-[10px] font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">#${b.no}</span>
-            <span class="text-[10px] font-bold text-slate-500">${b.countryFlag || '🌐'} ${b.countryName || b.country}</span>
-          </div>
+          <span class="text-[10px] font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">#${b.no}</span>
           <h3 class="text-sm font-black text-slate-900 mt-1">${b.brandKor || b.brandEng}</h3>
           <p class="text-[11px] text-slate-400 font-mono">${b.category} | ${b.brandEng || ''}</p>
         </div>
@@ -6605,30 +6753,31 @@ function renderPipelineCards() {
       </div>
 
       <div class="pt-2 border-t border-slate-100 text-xs space-y-1 text-slate-600">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="user" class="w-3 h-3 text-slate-400"></i>
-          <span class="truncate font-medium">${b.pic || '담당자 미등록'}</span>
+        <div class="flex justify-between">
+          <span class="text-slate-400">제안 날짜</span>
+          <span class="font-medium font-mono text-[11px]">${b.proposalDate || '-'}</span>
         </div>
-        <div class="flex items-center space-x-2">
-          <i data-lucide="mail" class="w-3 h-3 text-slate-400"></i>
-          <span class="truncate font-mono text-[11px]">${b.email || '-'}</span>
+        <div class="flex justify-between">
+          <span class="text-slate-400">메일 (POC)</span>
+          <span class="font-medium font-mono text-[11px] truncate max-w-[180px]">${b.email ? b.email.split(',')[0].trim() : '-'}</span>
         </div>
         ${b.exclusiveCountries ? `
-        <div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded">
-          <span class="font-bold text-slate-700">독점/제한: </span>
-          <span class="line-clamp-2">${b.exclusiveCountries}</span>
-        </div>` : ''}
+          <div class="pt-1 text-[11px] text-amber-700 font-medium">
+            <span>독점제한: </span><span>${b.exclusiveCountries.split('\n')[0]}</span>
+          </div>
+        ` : ''}
       </div>
 
-      <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100">
         <div class="flex items-center space-x-2">
-          ${b.brandUrl ? `<a href="${b.brandUrl}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-[11px] font-bold">공식몰</a>` : ''}
-          ${b.oliveyoungUrl ? `<a href="${b.oliveyoungUrl}" target="_blank" class="text-emerald-600 hover:text-emerald-800 text-[11px] font-bold">올리브영</a>` : ''}
-          ${b.instaUrl ? `<a href="${b.instaUrl}" target="_blank" class="text-pink-600 hover:text-pink-800 text-[11px] font-bold">인스타</a>` : ''}
-          ${b.gdriveUrl ? `<a href="${b.gdriveUrl}" target="_blank" class="text-amber-600 hover:text-amber-800 text-[11px] font-bold">드라이브</a>` : ''}
+          ${b.gdriveUrl ? `
+            <a href="${b.gdriveUrl}" target="_blank" rel="noopener noreferrer" class="p-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-700" title="구글 드라이브">
+              <i data-lucide="folder" class="w-3.5 h-3.5"></i>
+            </a>
+          ` : ''}
         </div>
-        <button onclick="editPipelineBrand('${b.id}')" class="px-2.5 py-1 text-[11px] font-bold bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 rounded transition">
-          수정
+        <button onclick="editPipelineBrand('${b.id}')" class="px-2.5 py-1 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">
+          상세 관리
         </button>
       </div>
     </div>
@@ -6651,19 +6800,14 @@ function exportPipelineToExcel() {
     return;
   }
 
-  const dataToExport = getFilteredPipelineData().map((b, idx) => ({
+  const exportData = getFilteredPipelineData();
+  const dataToExport = exportData.map((b, idx) => ({
     'No': idx + 1,
-    '국가': b.countryName || b.country,
     'Catogory': b.category,
     'Brand(KOR)': b.brandKor,
     'Brand(ENG)': b.brandEng,
     'Status': b.status,
-    '공급방식': b.supply,
-    '브랜드 URL': b.brandUrl,
-    '올리브영 URL': b.oliveyoungUrl,
-    '인스타그램 URL': b.instaUrl,
     '구글드라이브 폴더': b.gdriveUrl,
-    'PIC/담당자': b.pic,
     '메일(POC)': b.email,
     '제안날짜': b.proposalDate,
     '독점 체결 국가': b.exclusiveCountries,
@@ -6675,7 +6819,8 @@ function exportPipelineToExcel() {
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Brand_Pipeline_2026');
 
   const dateStr = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(workbook, `Brand_Partner_Pipeline_Export_${currentCountryFilter}_${dateStr}.xlsx`);
+  const modeStr = showExcelHidden ? 'All_With_Hidden' : 'Visible_Only';
+  XLSX.writeFile(workbook, `Brand_Partner_Pipeline_${modeStr}_${currentCountryFilter}_${dateStr}.xlsx`);
   alert(`[${dataToExport.length}개] 브랜드 파이프라인 엑셀 파일 다운로드가 시작되었습니다.`);
 }
 

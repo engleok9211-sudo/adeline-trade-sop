@@ -396,3 +396,79 @@ Offer Price (USD) = Offer Price (KRW) ÷ 1,480
    - GitHub Pages 원격 푸시 완료 (`engleok9211-sudo/adeline-trade-sop`)
    - 로컬 웹서버: `http://localhost:8080` (최신 v4 앱 화면에 자동 갱신 호출)
    - 클라우드 라이브 서비스: `https://engleok9211-sudo.github.io/adeline-trade-sop/`
+
+
+---
+
+## [2026-11-18 08:20] 본부장님 하명 및 3차 긴급 캐시 퍼지 조치 보고
+
+### 👑 본부장님 원천 하명:
+> 방금 수정한 코드가 내 브라우저 화면에 전혀 반영되지 않고 여전히 이전 컬럼(국가/시트, 공급방식, 브랜드 URL, 올리브영, Insta, PIC/담당자)이 그대로 보이고 있어!  
+> 1. 현재 브라우저가 바라보고 있는 실제 실행 파일 경로(예: result 폴더 안의 v6 HTML 파일 또는 최상위 index.html)를 정확히 찾아내어, 그 파일 안의 <table> 헤더(<th>)와 데이터(<td>) 코드에서 해당 6개 컬럼을 100% 확실하게 삭제해 줘.  
+> 2. 캐시 문제나 빌드 파일 미반영일 수 있으니, 템플릿 렌더링 스크립트와 마스터 데이터(PIPELINE_MASTER_DATA)에서도 해당 컬럼 데이터가 완전히 제거되도록 빌드/저장해 줘.  
+> 3. 수정 완료 후 브라우저에서 하드 새로고침(Ctrl + F5)을 하도록 안내해 줘.
+
+---
+
+### 🗣️ ADVISOR 총괄팀장 & 대장장이 조치 보고:
+1. **정밀 파일 위치 확정**:
+   - 브라우저가 바라보는 실제 파일은 `index.html`, `result/[018]_Order_Process_SOP_App_v6_Buyer_Development_Spreadsheet.html`, `result/index.html` 3대 핵심 파일입니다.
+2. **3중 캐시 무효화 방어막 적용**:
+   - HTML `<head>`에 `Cache-Control: no-cache, no-store`, `Pragma: no-cache` 메타태그 삽입.
+   - `<head>` 진입 즉시 `localStorage.removeItem`으로 구버전 캐시(`v1`, `v2`, `v3`) 0초 만에 강제 파기.
+   - 최신 키 `adeline_pipeline_master_brands_v4`로 격리.
+3. **육안 식별 뱃지 탑재**:
+   - `✅ v7.0 엑셀 6개 컬럼 삭제 완료 (10대 핵심 컬럼 전용)` 녹색 뱃지를 테이블 상단에 삽입하여 최신 파일 열람 여부를 1초 만에 확인 가능.
+4. **결과 보고서 발행**:
+   - `result/[022]_브랜드사관리_6개컬럼_완전삭제_및_브라우저_캐시퍼지_최종완료보고서.md` 완료.
+
+
+---
+
+## [2026-11-18 08:40] 본부장님 하명: 엑셀 원본 12개 컬럼 및 15개 브랜드 100% 원문 그대로 반영
+
+### 👑 본부장님 원천 하명 (Verbatim):
+> Brand & Partner Pipeline 2026 엑셀자료를 그대로 반영해줘
+
+---
+
+### 🗣️ ADVISOR 총괄팀장 조치 및 완결 보고:
+1. **엑셀 원본(`Brand & Partner Pipeline 2026.xlsx` - Sheet 1) 12개 컬럼 구조 완전 1:1 동기화**:
+   - `No.` (순번 1~15)
+   - `Business` (브랜드사)
+   - `Catogory ` (Skincare 등)
+   - `회사/브랜드명(ENG)` (토리든 Torriden, 아누아 Anua, ... 썸바이미 SOME BY MI)
+   - `Status(현황)` (공급률 실투 47.5, no MOA, 진행현황 등 원문)
+   - `RA(해외인허가)` (CPNP, SCPN, MoCRA 등)
+   - `Supply` (유통, 다이렉트 등 엑셀 원본 공급형태)
+   - `POC` (담당자 성명, 연락처, 이메일 주소 전체)
+   - `메일링` (최초/최신 제안일자)
+   - `구글 드라이브` (구글 드라이브 폴더 하이퍼링크 9개 연동)
+   - `RP/마케팅 자료 ` (마케팅 자료 및 소개서 드라이브 링크 연동)
+   - `독점 체결 국가 ` (유통 제한 국가 및 채널 원문 전체)
+
+2. **반영 파일 일람**:
+   - `index.html` (최상위 실행 파일)
+   - `result/[018]_Order_Process_SOP_App_v6_Buyer_Development_Spreadsheet.html`
+   - `result/index.html`
+   - `pipeline_feature.js`
+
+3. **15개 마스터 데이터 및 하이퍼링크 100% 복원 반영**:
+   - 1. 토리든 Torriden (구글드라이브 연동)
+   - 2. 아누아 Anua (RA: CPNP, SCPN, MoCRA / 구글드라이브 연동)
+   - 3. 마녀공장 Ma:nyo (구글드라이브 & RP 마케팅 드라이브 2개 연동)
+   - 4. 리쥬란 Rejuran (구글드라이브 연동)
+   - 5. 비플레인 beplain
+   - 6. 메디필 MEDIPEEL (구글드라이브 연동)
+   - 7. 빌리프 belif
+   - 8. 넘버즈인 Numbuzin (구글드라이브 연동)
+   - 9. VT (구글드라이브 연동)
+   - 10. 아비브 Abib (구글드라이브 & Abib 소개서 PDF 2개 연동)
+   - 11. 닥터리쥬올 Dr Reju-all
+   - 12. 메디힐 Mediheal (구글드라이브 연동)
+   - 13. 닥터비타 Dr Vita
+   - 14. 달바 d'Alba (구글드라이브 연동)
+   - 15. 썸바이미 SOME BY MI (구글드라이브 연동)
+
+4. **로컬스토리지 v5 격리 및 브라우저 캐시 무효화**:
+   - `adeline_pipeline_master_brands_v5` 격리 키 적용으로 브라우저 재접속 시 엑셀 원본 12개 컬럼 및 15개 브랜드가 즉시 표시됨.
